@@ -1,0 +1,45 @@
+\chapter{Présentation et qualification du jeu de données}
+\label{chap:donnees}
+
+\section{Origine et structure connue}
+Les données proviennent d'un banc d'essai expérimental dédié à l'étude de comportements vibratoires de roulements. Elles sont rangées selon cinq états mécaniques et trois régimes désignés par les valeurs 10, 15 et 20. L'unité exacte de ces régimes doit encore être établie.
+
+\begin{table}[htbp]
+\centering\small
+\caption{Catégories connues à ce stade.}
+\label{tab:classes}
+\begin{tabularx}{\textwidth}{@{}>{\ttfamily}lX@{}}
+\toprule
+\multicolumn{1}{@{}l}{\bfseries Dossier} & \bfseries Interprétation préliminaire\\
+\midrule
+SAFE & État considéré comme sain.\\
+BALL & Défaut affectant un élément roulant.\\
+INNER\_RACE & Défaut affectant la bague intérieure.\\
+OUTER\_RACE & Défaut affectant la bague extérieure.\\
+COMBINED & Défauts combinés ; composition exacte à confirmer.\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Les fichiers sont au format \texttt{.xlsx} et contiennent notamment les deux colonnes \path{acceleration_vertbleu} et \path{acceleration_vert}. Ces noms désignent deux voies de mesure d'\textbf{accélération verticale} ; le terme « vert » ne doit pas être interprété comme une couleur de capteur. Les fichiers consultés ne comportent pas de colonne temporelle explicite.
+
+\section{Informations métrologiques et expérimentales manquantes}
+\begin{encadreattente}
+\textbf{Points à confirmer avant de figer le protocole :}
+\begin{itemize}
+  \item fréquence d'échantillonnage et unités d'accélération ;
+  \item signification physique des régimes 10, 15 et 20 ;
+  \item position, synchronisation et calibration des deux capteurs ;
+  \item durée des acquisitions, nombre d'échantillons et continuité éventuelle entre fichiers ;
+  \item identité des essais indépendants et éventuelles répétitions ;
+  \item nature, localisation et sévérité des défauts, notamment combinés ;
+  \item correspondance entre les segments des noms de fichiers et les paramètres d'acquisition.
+\end{itemize}
+\end{encadreattente}
+
+\section{Analyse exploratoire attendue}
+L'analyse exploratoire devra produire au minimum un inventaire du nombre de fichiers et d'échantillons par état et par régime, la distribution des durées ou tailles d'acquisition, des contrôles de valeurs manquantes et de duplication, ainsi qu'une étude descriptive des amplitudes pour chacune des voies de mesure.
+
+Les comparaisons graphiques devront distinguer les \textbf{effets de l'état mécanique} des \textbf{effets du régime}. Une éventuelle synchronisation des deux voies ne devra pas être présumée sans vérification.
+
+\acompleter{Ajouter : schéma du banc d'essai, photographies et position des capteurs, tableau exhaustif de volumétrie, statistiques des données, traçabilité de la collecte, et résultats de l'analyse exploratoire (responsables techniques à préciser avec l'équipe).}

@@ -1,0 +1,80 @@
+\chapter{Cadre scientifique et état de l'art préliminaire}
+\label{chap:cadre}
+
+\section{Principes de l'analyse vibratoire}
+Une vibration mécanique peut être caractérisée par son amplitude, sa fréquence et la nature des excitations qui la produisent. Les grandeurs cinématiques usuelles sont le déplacement, la vitesse et l'accélération. Pour des phénomènes rapides et impulsionnels, la mesure d'accélération peut être particulièrement informative, sous réserve que la chaîne de mesure possède une bande passante adaptée \cite{boulenger2009}.
+
+Le manuel de Boulenger et Pachaud aborde notamment les grandeurs vibratoires (chapitre 1), le traitement des signaux (chapitre 2), les stratégies de surveillance (chapitre 4) et les défauts de roulements (section 5.13). Ces éléments constituent des \emph{pistes à examiner}, et non une liste d'outils à employer obligatoirement.
+
+\section{Indicateurs temporels classiques}
+Pour une fenêtre numérique de $N$ observations $x_1,\ldots,x_N$, on peut définir la valeur efficace
+\begin{equation}
+  x_{\mathrm{RMS}}=\sqrt{\frac{1}{N}\sum_{i=1}^{N}x_i^2}.
+  \label{eq:rms}
+\end{equation}
+Une définition courante du facteur de crête est
+\begin{equation}
+  C_f=\frac{\max_i |x_i|}{x_{\mathrm{RMS}}},
+  \label{eq:crest}
+\end{equation}
+et le kurtosis de Pearson peut s'écrire
+\begin{equation}
+  K=\frac{\frac{1}{N}\sum_{i=1}^{N}(x_i-\bar{x})^4}
+          {\left[\frac{1}{N}\sum_{i=1}^{N}(x_i-\bar{x})^2\right]^2},
+  \quad \bar{x}=\frac{1}{N}\sum_{i=1}^{N}x_i.
+  \label{eq:kurtosis}
+\end{equation}
+Ces indicateurs ne suffisent pas, pris isolément, à identifier une pathologie mécanique. Ils pourront toutefois être étudiés comme \textbf{caractéristiques explicatives}, \textbf{points de comparaison} ou \textbf{variables d'exploration}.
+
+\section{Analyse fréquentielle : condition préalable}
+Si la fréquence d'échantillonnage $f_s$ est connue et l'acquisition adéquate, la transformée de Fourier discrète permet d'étudier les contributions fréquentielles du signal. Pour une fenêtre de $N$ échantillons, l'espacement nominal des fréquences discrètes est
+\begin{equation}
+  \Delta f=\frac{f_s}{N}.
+  \label{eq:resolution}
+\end{equation}
+Le choix de la durée d'observation, du fenêtrage et du traitement spectral doit être cohérent avec les phénomènes physiques recherchés. \textbf{En l'absence de fréquence d'échantillonnage confirmée, il serait incorrect d'attribuer des valeurs en hertz à des raies spectrales.} Toute exploitation spectrale physiquement interprétée sera donc conditionnée à la vérification de cette métadonnée.
+
+\section{Principe des autoencodeurs}
+Soit $\mathbf{x}\in\mathbb{R}^d$ un vecteur d'entrée. Un encodeur $f_{\theta}$ calcule une représentation latente $\mathbf{z}$ ; un décodeur $g_{\phi}$ produit sa reconstruction :
+\begin{equation}
+  \mathbf{z}=f_{\theta}(\mathbf{x}),\qquad
+  \widehat{\mathbf{x}}=g_{\phi}(\mathbf{z}).
+\end{equation}
+Un objectif de référence est la minimisation de l'erreur quadratique moyenne :
+\begin{equation}
+  \mathcal{L}_{\mathrm{rec}}=\frac{1}{M}\sum_{j=1}^{M}
+    \left\|\mathbf{x}^{(j)}-\widehat{\mathbf{x}}^{(j)}\right\|_2^2.
+  \label{eq:aeloss}
+\end{equation}
+La forme de l'entrée (caractéristiques statistiques, fenêtres temporelles, représentations temps--fréquence) et l'architecture de l'autoencodeur devront être justifiées par les propriétés effectivement constatées des données.
+
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[>=Latex, every node/.style={font=\sffamily\footnotesize},
+    bloc/.style={draw=bleufonce!35,rounded corners=2mm,minimum height=13mm,
+                 minimum width=24mm,align=center,fill=grisclair}]
+  \node[bloc] (x) {Données\\d'entrée};
+  \node[bloc,right=5mm of x,fill=bleupale] (enc) {Encodeur};
+  \node[bloc,right=5mm of enc,fill=turquoise!13] (z) {Espace\\latent};
+  \node[bloc,right=5mm of z,fill=bleupale] (dec) {Décodeur};
+  \node[bloc,right=5mm of dec] (xh) {Données\\reconstruites};
+  \draw[->,very thick,bleufonce] (x)--(enc);
+  \draw[->,very thick,bleufonce] (enc)--(z);
+  \draw[->,very thick,bleufonce] (z)--(dec);
+  \draw[->,very thick,bleufonce] (dec)--(xh);
+\end{tikzpicture}
+\caption{Schéma conceptuel d'un autoencodeur (illustration réalisée pour ce rapport).}
+\label{fig:autoencodeur}
+\end{figure}
+
+\section{Deux usages complémentaires}
+\subsection{Regroupement non supervisé}
+Les représentations latentes $\mathbf{z}$ peuvent être regroupées à l'aide de méthodes telles que $k$-means ou les mélanges gaussiens (GMM). La qualité des partitions sera évaluée indépendamment des étiquettes utilisées pour caractériser les acquisitions. Des approches par caractéristiques classiques et par réduction de dimension de type PCA pourront servir de comparateurs.
+
+\subsection{Détection d'anomalies par reconstruction}
+Un autoencodeur entraîné sur des données de fonctionnement sain peut fournir un score d'anomalie fondé sur l'erreur de reconstruction. L'hypothèse est qu'une observation suffisamment éloignée de la distribution saine sera moins bien reconstruite ; elle doit néanmoins être \textbf{vérifiée expérimentalement}, car un réseau trop flexible peut également reconstruire certains défauts. La variation des régimes de fonctionnement peut par ailleurs affecter les scores.
+
+\section{Positionnement par rapport à la littérature}
+Les travaux de Shao \emph{et al.} \cite{shao2017} explorent l'apprentissage de caractéristiques par autoencodeur pour le diagnostic de machines tournantes. Ceux de Malhotra \emph{et al.} \cite{malhotra2016} étudient une approche encodeur--décodeur appliquée à l'identification d'anomalies sur des séries temporelles multicapteurs. Ces études motivent l'exploration des autoencodeurs, sans permettre de présumer de leurs performances sur notre banc d'essai.
+
+\acompleter{Construire une synthèse bibliographique critique : contexte de chaque article, entrées, architectures, protocole d'évaluation, limites et pertinence réelle pour le jeu de données. Ne retenir les techniques du manuel vibratoire qu'après examen de leur valeur ajoutée.}
