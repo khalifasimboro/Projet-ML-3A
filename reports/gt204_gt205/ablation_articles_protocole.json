@@ -1,0 +1,40 @@
+{
+  "phase": "screening",
+  "representation": "spectres_log_PSD_standardises",
+  "train_regime": "10",
+  "validation_regime": "20",
+  "test_regime_reserve": "15",
+  "independance_physique_certifiee": false,
+  "models": [
+    "cnn",
+    "denoise",
+    "memae",
+    "adae",
+    "isolation_forest"
+  ],
+  "seeds": [
+    0,
+    7,
+    21
+  ],
+  "noise_levels_std": [
+    0.0,
+    0.15,
+    0.3
+  ],
+  "epochs": 15,
+  "batch_size": 64,
+  "latent_dim": 6,
+  "device": "cpu",
+  "n_train_safe": 523,
+  "n_val": 2674,
+  "n_test_non_utilise": 3035,
+  "noise_warning": "Perturbation GAUSSIENNE sur log-PSD STANDARDISÉ, pas équivalente à un bruit vibratoire de capteur.",
+  "threshold": "Quantile 99% sur SAFE de calibration propre ; maintenu fixe sous bruit",
+  "articles": {
+    "memae": "Gong et al., ICCV 2019: https://openaccess.thecvf.com/content_ICCV_2019/html/Gong_Memorizing_Normality_to_Detect_Anomaly_Memory-Augmented_Deep_Autoencoder_for_Unsupervised_ICCV_2019_paper.html",
+    "adae": "Lu, Zhou & He, Electronics 2024: https://doi.org/10.3390/electronics13122403",
+    "cmae": "Lu et al., IEEE TIM 2025: https://doi.org/10.1109/TIM.2025.3546365"
+  },
+  "not_exact_reproduction": true
+}

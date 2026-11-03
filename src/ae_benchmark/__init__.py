@@ -1,0 +1,1 @@
+"""Benchmark exploratoire d'autoencodeurs pour vibrations industrielles."""
