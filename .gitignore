@@ -1,0 +1,12 @@
+# données et fichiers générés
+data/
+*.xlsx
+*.pkl
+*.npy
+*.joblib
+
+# environnement Python
+venv/
+.venv/
+__pycache__/
+.ipynb_checkpoints/
