@@ -1,0 +1,94 @@
+% ================================================================
+% CONFIGURATION GLOBALE : éditer principalement les lignes ci-dessous
+% Compatible Overleaf gratuit / compilateur pdfLaTeX / sans options payantes
+% ================================================================
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[french]{babel}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage[a4paper,left=27mm,right=25mm,top=27mm,bottom=26mm,headheight=16pt]{geometry}
+\usepackage{graphicx}
+\usepackage{tikz}
+\usetikzlibrary{calc,positioning,arrows.meta}
+\usepackage[most]{tcolorbox}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs,tabularx,array,longtable}
+\usepackage{enumitem}
+\usepackage{titlesec}
+\usepackage{fancyhdr}
+\usepackage{lastpage}
+\usepackage{caption}
+\usepackage{float}
+\usepackage{hyperref}
+\usepackage{url}
+\usepackage{xcolor}
+
+% --- Identité du document : MODIFIER CES CHAMPS ---
+\newcommand{\Ecole}{École Centrale Casablanca}
+\newcommand{\Cours}{Machine Learning et Intelligence Artificielle}
+\newcommand{\TitreRapport}{Autoencodeurs pour le clustering\\et la détection d'anomalies}
+\newcommand{\SousTitreRapport}{Application à la surveillance vibratoire des roulements}
+\newcommand{\MembreA}{Prénom NOM du membre A}
+\newcommand{\MembreB}{Prénom NOM du membre B}
+\newcommand{\MembreC}{Prénom NOM du membre C}
+\newcommand{\MembreD}{Prénom NOM du membre D}
+\newcommand{\Encadrant}{À compléter}
+\newcommand{\AnneeProjet}{2026}
+\newcommand{\PeriodeProjet}{22 octobre -- 30 novembre 2026}
+\newcommand{\VersionRapport}{0.1}
+\newcommand{\DateMiseAJour}{27 octobre 2026}
+
+% --- Logos et photo FACULTATIFS ---
+% Ajouter ces fichiers dans le dossier images/, sans toucher au code.
+\newcommand{\CheminLogoECC}{images/logo_ecc.png}
+\newcommand{\CheminLogoPartenaire}{images/logo_partenaire.png}
+\newcommand{\CheminPhotoBanc}{images/banc_essai.jpg}
+
+% --- Palette sobre, académique, industrielle ---
+\definecolor{bleunuit}{HTML}{14253D}
+\definecolor{bleufonce}{HTML}{223C59}
+\definecolor{turquoise}{HTML}{0E8794}
+\definecolor{orclair}{HTML}{DBAD54}
+\definecolor{grisclair}{HTML}{F3F6F8}
+\definecolor{grisfonce}{HTML}{596A77}
+\definecolor{bleupale}{HTML}{EAF3F5}
+\definecolor{orangealerte}{HTML}{A36B21}
+
+\hypersetup{pdftitle={Autoencodeurs pour le clustering et la détection d'anomalies},
+            pdfauthor={Équipe de projet, École Centrale Casablanca},
+            colorlinks=true,linkcolor=bleufonce,citecolor=turquoise,urlcolor=turquoise}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.55em}
+\renewcommand{\arraystretch}{1.18}
+\setlist[itemize]{leftmargin=*,topsep=3pt,itemsep=2pt}
+\setlist[enumerate]{leftmargin=*,topsep=3pt,itemsep=2pt}
+\captionsetup{font=small,labelfont={bf,color=bleunuit}}
+
+% --- Titres et navigation ---
+\titleformat{\chapter}[display]
+  {\sffamily\bfseries\color{bleunuit}}
+  {\textcolor{turquoise}{\small\MakeUppercase{Chapitre}\ \thechapter}}
+  {3pt}{\Huge}
+\titlespacing*{\chapter}{0pt}{-6pt}{20pt}
+\titleformat{\section}{\Large\sffamily\bfseries\color{bleufonce}}{\thesection}{0.8em}{}
+\titleformat{\subsection}{\normalsize\sffamily\bfseries\color{turquoise}}{\thesubsection}{0.8em}{}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small\sffamily\color{grisfonce}Projet Autoencodeurs $\cdot$ ML \& IA}
+\fancyhead[R]{\small\sffamily\color{turquoise}Document évolutif $\vert$ v\VersionRapport}
+\fancyfoot[L]{\footnotesize\color{grisfonce}\Ecole}
+\fancyfoot[R]{\footnotesize\color{grisfonce}\thepage}
+\renewcommand{\headrulewidth}{0.3pt}
+\renewcommand{\footrulewidth}{0pt}
+\fancypagestyle{plain}{\fancyhf{}\fancyfoot[L]{\footnotesize\color{grisfonce}\Ecole}\fancyfoot[R]{\footnotesize\color{grisfonce}\thepage}\renewcommand{\headrulewidth}{0pt}}
+
+% --- Blocs d'information réutilisables ---
+\newtcolorbox{encadreinfo}[1][]{enhanced,breakable,colback=bleupale,
+  colframe=turquoise!45,boxrule=0.35pt,arc=1.5mm,
+  borderline west={2.5pt}{0pt}{turquoise},left=4mm,right=4mm,top=3mm,bottom=3mm,#1}
+\newtcolorbox{encadreattente}[1][]{enhanced,breakable,colback=grisclair,
+  colframe=grisfonce!20,boxrule=0.35pt,arc=1mm,
+  borderline west={2pt}{0pt}{orclair},left=4mm,right=4mm,top=3mm,bottom=3mm,#1}
+\newcommand{\acompleter}[1]{\begin{encadreattente}\textbf{À compléter au cours du projet.}\\ #1\end{encadreattente}}

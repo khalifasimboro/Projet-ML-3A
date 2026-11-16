@@ -1,0 +1,51 @@
+\chapter{Introduction générale et cadrage}
+\label{chap:introduction}
+
+\section{Contexte industriel}
+La disponibilité et la fiabilité des équipements constituent des enjeux importants pour la continuité de la production, la sécurité et les coûts d'exploitation. Sur les machines tournantes, une dégradation mécanique peut perturber le fonctionnement avant d'aboutir à une défaillance. Les démarches de surveillance conditionnelle cherchent à exploiter des mesures représentatives de l'état de l'équipement pour orienter les opérations de maintenance.
+
+Parmi ces mesures, les vibrations offrent une information privilégiée sur le comportement dynamique des organes mécaniques. Les changements de rigidité, les jeux, les chocs et les défauts de surface peuvent modifier les caractéristiques des signaux vibratoires. L'analyse des vibrations ne se réduit cependant pas à un seul indicateur : elle mobilise des mesures, des traitements du signal et une connaissance du fonctionnement de la machine \cite{boulenger2009}.
+
+Les roulements occupent une place centrale dans de nombreuses machines tournantes. Une anomalie touchant un élément roulant ou une bague peut entraîner des phénomènes impulsionnels et modifier la répartition temporelle et fréquentielle des vibrations. L'exploitation de ces signatures dépend néanmoins du régime de fonctionnement, des conditions d'acquisition et de la transmission des vibrations jusqu'aux capteurs.
+
+\section{Apport potentiel de l'apprentissage non supervisé}
+L'analyse vibratoire conventionnelle repose notamment sur des indicateurs statistiques et des représentations spectrales. Elle fournit des informations utiles à l'interprétation mécanique, mais le choix des caractéristiques pertinentes peut être délicat lorsque les signaux sont complexes, bruités ou acquis dans plusieurs conditions de fonctionnement.
+
+Les \textbf{autoencodeurs} constituent une famille de réseaux neuronaux entraînés à reconstruire leurs données d'entrée à partir d'une représentation intermédiaire. Leur usage est étudié, entre autres, pour apprendre des caractéristiques de machines tournantes \cite{shao2017} et pour détecter des anomalies à partir de l'erreur de reconstruction de séries temporelles multicapteurs \cite{malhotra2016}.
+
+Dans ce projet, deux finalités distinctes seront examinées :
+\begin{itemize}
+  \item le \textbf{clustering}, pour explorer les regroupements naturels des observations dans un espace de caractéristiques appris ;
+  \item la \textbf{détection d'anomalies}, pour étudier la possibilité de distinguer des états défectueux à partir d'un modèle de référence associé au fonctionnement sain.
+\end{itemize}
+
+Ces finalités ne doivent pas être confondues avec une classification supervisée : les étiquettes de défauts pourront servir à évaluer les regroupements, mais ne devront pas être utilisées pour entraîner la représentation dans un protocole déclaré non supervisé.
+
+\section{Problématique scientifique}
+Les données disponibles couvrent plusieurs états de roulements, plusieurs régimes de fonctionnement et deux voies de mesure d'accélération verticale. Une modification du signal peut donc résulter d'un défaut, d'un changement de régime ou de conditions expérimentales. Cette diversité constitue à la fois un intérêt scientifique et une source possible de confusion pour les algorithmes.
+
+\begin{encadreinfo}
+\textbf{Problématique proposée :}
+\emph{Dans quelle mesure les autoencodeurs permettent-ils d'apprendre, à partir de mesures vibratoires expérimentales, des représentations utiles au regroupement des états de roulements et à la détection d'anomalies, tout en maîtrisant l'influence des conditions de fonctionnement ?}
+\end{encadreinfo}
+
+Cette problématique sera réexaminée après l'analyse exploratoire et la clarification des métadonnées d'acquisition.
+
+\section{Objectifs du projet}
+\textbf{Objectif général.} Étudier et évaluer des approches fondées sur les autoencodeurs pour le clustering et la détection d'anomalies dans des signaux vibratoires de roulements.
+
+\textbf{Objectifs spécifiques envisagés :}
+\begin{enumerate}
+  \item caractériser la structure, la qualité et la variabilité des mesures expérimentales ;
+  \item identifier des représentations pertinentes des signaux et concevoir des autoencodeurs adaptés ;
+  \item analyser la structure des représentations latentes au moyen de méthodes de clustering ;
+  \item mesurer la capacité d'un modèle entraîné sur un état sain à signaler des acquisitions anormales ;
+  \item comparer ces solutions à des approches de référence plus simples ;
+  \item évaluer la robustesse des résultats aux différents régimes et voies de mesure ;
+  \item préparer une démonstration reproductible de la solution retenue.
+\end{enumerate}
+
+\section{Périmètre et prudence terminologique}
+Les acquisitions proviennent d'un \textbf{banc d'essai expérimental de roulements}. Le dispositif ne doit pas être présenté comme un suivi direct d'une flotte ferroviaire en exploitation sans preuve documentaire.
+
+Le terme \emph{maintenance prédictive} est employé ici pour situer la finalité industrielle générale. Le projet porte d'abord sur la \textbf{surveillance d'état et le diagnostic de comportements anormaux}. Il ne vise pas, en l'état actuel des informations, à estimer une durée de vie résiduelle (RUL), car l'existence de trajectoires de dégradation temporelle n'est pas établie.

@@ -1,0 +1,79 @@
+% ================================================================
+% PAGE DE GARDE : automatiquement fonctionnelle sans logos ni photos
+% ================================================================
+\begin{titlepage}
+\newgeometry{left=21mm,right=21mm,top=17mm,bottom=17mm}
+\thispagestyle{empty}
+\begin{tikzpicture}[remember picture,overlay]
+  \fill[bleunuit] (current page.north west) rectangle
+    ([yshift=-9.35cm]current page.north east);
+  \fill[turquoise] ([yshift=-9.35cm]current page.north west) rectangle
+    ([yshift=-9.24cm]current page.north east);
+  \fill[orclair] ([xshift=0cm,yshift=-9.35cm]current page.north west) rectangle
+    ([xshift=3.9cm,yshift=-9.24cm]current page.north west);
+  \draw[white,opacity=0.10,line width=17pt]
+    ($(current page.north east)+(-0.9cm,-1.45cm)$) circle (2.25cm);
+  \draw[turquoise,opacity=0.25,line width=1pt]
+    ($(current page.north east)+(-2.5cm,-6.2cm)$) circle (2.5cm);
+  \draw[white,opacity=0.19,line width=1.1pt]
+    ($(current page.north west)+(0.0cm,-7.0cm)$) --
+    ++(2.0cm,0cm) -- ++(0.35cm,-0.38cm) -- ++(0.5cm,0.77cm)
+    -- ++(0.7cm,-1.07cm) -- ++(0.6cm,0.64cm) -- ++(1cm,0cm)
+    -- ++(0.45cm,-0.3cm) -- ++(0.65cm,0.30cm) -- ++(2cm,0cm);
+\end{tikzpicture}
+
+\noindent
+\begin{minipage}[t]{.73\linewidth}
+  \IfFileExists{\CheminLogoECC}{\includegraphics[height=13mm,keepaspectratio]{\CheminLogoECC}}
+  {\fcolorbox{white}{white}{\parbox[c][12mm][c]{39mm}{\centering\sffamily\bfseries\color{bleunuit}\small ÉCOLE CENTRALE\\CASABLANCA}}}
+\end{minipage}%
+\begin{minipage}[t]{.27\linewidth}
+  \raggedleft
+  \IfFileExists{\CheminLogoPartenaire}{\includegraphics[height=13mm,keepaspectratio]{\CheminLogoPartenaire}}
+  {\fcolorbox{white}{white}{\parbox[c][12mm][c]{30mm}{\centering\sffamily\color{grisfonce}\scriptsize Logo\\facultatif}}}
+\end{minipage}
+
+\vspace{8mm}
+{\sffamily\bfseries\color{orclair}\fontsize{10}{13}\selectfont
+ PROJET ACADÉMIQUE $\cdot$ MACHINE LEARNING \& IA\par}
+\vspace{3mm}
+{\color{white}\sffamily\bfseries\fontsize{25}{30}\selectfont
+ \TitreRapport\par}
+\vspace{3mm}
+{\color{white!86}\sffamily\fontsize{12}{17}\selectfont
+ \SousTitreRapport\par}
+\vspace{18mm}
+{\color{turquoise}\footnotesize\sffamily\bfseries
+ DOSSIER SCIENTIFIQUE ÉVOLUTIF \quad $\vert$ \quad VERSION \VersionRapport\par}
+
+\vspace{15mm}
+\begin{minipage}[t]{.57\linewidth}
+  {\Large\sffamily\bfseries\color{bleunuit}Équipe projet}\par\vspace{2mm}
+  \begin{tabular}{@{}>{\sffamily\bfseries\color{turquoise}}l@{\hspace{6mm}}l@{}}
+    A & \MembreA\\[1mm]
+    B & \MembreB\\[1mm]
+    C & \MembreC\\[1mm]
+    D & \MembreD
+  \end{tabular}
+\end{minipage}%
+\hfill
+\begin{minipage}[t]{.38\linewidth}
+  {\Large\sffamily\bfseries\color{bleunuit}Encadrement}\par\vspace{2mm}
+  {\color{grisfonce}\small\Encadrant}\par\vspace{7mm}
+  {\color{turquoise}\sffamily\bfseries\small COURS}\par
+  {\small\Cours}
+\end{minipage}
+
+\vspace{11mm}
+\begin{tcolorbox}[colback=grisclair,colframe=grisclair,boxrule=0pt,
+     arc=1mm,left=5mm,right=5mm,top=3mm,bottom=3mm]
+\begin{tabularx}{\linewidth}{@{}>{\bfseries\color{bleunuit}}p{48mm}X@{}}
+  Période du projet & \PeriodeProjet\\
+  Responsable rapport & Membre B, avec contributions de toute l'équipe\\
+  Dernière mise à jour & \DateMiseAJour
+\end{tabularx}
+\end{tcolorbox}
+\vfill
+{\color{grisfonce}\small\sffamily\Ecole\hfill\AnneeProjet}
+\end{titlepage}
+\restoregeometry
