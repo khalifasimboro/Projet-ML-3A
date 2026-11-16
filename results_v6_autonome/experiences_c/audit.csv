@@ -1,0 +1,8 @@
+Contrôle,Observation
+group_id physiquement indépendant,ABSENT — validation non confirmée
+fichier distincts,8431
+fichier communs à plusieurs splits,0
+chemin distincts,8431
+chemin communs à plusieurs splits,0
+doublons exacts TEST vs TRAIN,0
+doublons exacts TEST vs VAL,0

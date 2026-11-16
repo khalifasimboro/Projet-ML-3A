@@ -1,0 +1,18 @@
+{
+  "nature": "Exploratoire : split V4 sans preuve de séries indépendantes",
+  "n_acquisitions": 8431,
+  "cache_sha256": "83f50b4a79d8085c1439b868bee51b237b7105a7575e484300853ee28a76e3f7",
+  "python_numpy": "2.4.6",
+  "pandas": "2.3.3",
+  "sklearn": "1.9.1",
+  "graines_kmeans_gmm": [
+    10,
+    20,
+    30,
+    40,
+    50
+  ],
+  "test_vitesse_inconnue": "Baselines PCA uniquement, sans autoencodeur et sans normalisation par la vitesse exclue",
+  "bruit_latent": "Ne constitue pas un bruit de capteur physique",
+  "attention": "Les labels TEST sont employés pour les métriques seulement; après résultats V5 déjà observés."
+}
