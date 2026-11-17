@@ -59,7 +59,7 @@ def page():
             html("".join(pastille(x) for x in ("Python 3.11", f"scikit-learn {art['meta']['version_sklearn']}", "SciPy", "pandas", "Plotly", "Streamlit")))
             st.link_button(T("Voir le dépôt GitHub", "Open the GitHub repository"), DEPOT, icon=":material/code:")
     with st.container(border=True, key=ncle()):
-        titre_carte(T("Équipe", "Team"), T("Groupe 4 · École Centrale Casablanca · Projet ML, sujet 6", "Group 4 · École Centrale Casablanca · ML project, topic 6"))
+        titre_carte(T("Équipe", "Team"), T("Projet ML, sujet 6", "ML project, topic 6"))
         html('<div class="bg-people">' + "".join(f'<div>{n}<span>{T("Élève ingénieur", "Engineering student")}</span></div>'
                                                  for n in ("KINDO Harouna", "HODONOU Firmin", "DOMBOUÉ Tidiane", "SIMBORO Rydouane")) + "</div>")
     pied()

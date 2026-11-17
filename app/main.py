@@ -12,13 +12,19 @@ for chemin in (str(ICI), str(ICI.parent)):
 
 import streamlit as st  # noqa: E402
 
-from ui import donnees, theme  # noqa: E402
+from ui import barre, theme  # noqa: E402
 from ui.i18n import T  # noqa: E402
-from vues import accueil, diagnostic, exploration, latent, methodologie, performances, surveillance  # noqa: E402
+from vues import accueil, bienvenue, diagnostic, exploration, latent, methodologie, performances, surveillance  # noqa: E402
 
-st.set_page_config(page_title="Ballguard", page_icon=str(theme.ASSETS / "icone.png"), layout="wide")
+st.set_page_config(page_title="Ballguard", page_icon=str(theme.ASSETS / "icone.png"), layout="wide",
+                   initial_sidebar_state="expanded")
 st.session_state.setdefault("lang", "fr")
 st.session_state.setdefault("theme", "light")
+
+if not st.session_state.get("nom"):     # écran de bienvenue à chaque nouvelle session
+    theme.appliquer()
+    bienvenue.ecran()
+    st.stop()
 
 P = st.Page
 pages = {
@@ -44,10 +50,10 @@ nav = st.navigation({
     T("Modèles", "Models"): [pages["latent"], pages["performances"]],
     T("Projet", "Project"): [pages["methodologie"]],
 })
-st.logo(str(theme.ASSETS / "logo.png"), size="large", icon_image=str(theme.ASSETS / "icone.png"))
+st.logo(str(theme.ASSETS / "logo.png"), size="large", icon_image=str(theme.ASSETS / "icone_rail.png"))
 
 with st.sidebar:
-    c1, c2 = st.columns([1, 1.5])
+    c1, c2 = st.columns([1, 1.45], gap="small")
     langue = c1.segmented_control(T("Langue", "Language"), ["FR", "EN"], key="_w_lang",
                                   default=st.session_state.lang.upper())
     libelles = {"light": T("Clair", "Light"), "dark": T("Sombre", "Dark")}
@@ -59,10 +65,9 @@ with st.sidebar:
     if choix and choix != st.session_state.theme:
         st.session_state.theme = choix
         st.rerun()
-    m = donnees.modele()
-    st.markdown(f'<div class="bg-model"><b><span class="bg-dot"></span>{T("Modèle chargé", "Model loaded")}</b>'
-                f'<span>scikit-learn {m["version_sklearn"]}<br>{T("entraîné le", "trained on")} {m["date"]}</span></div>',
-                unsafe_allow_html=True)
 
 theme.appliquer()        # après st.navigation : un rerun de thème ne doit pas faire perdre la page demandée
+cible = barre.afficher(pages)   # barre du haut : accroche animée + recherche
+if cible:
+    st.switch_page(pages[cible])
 nav.run()

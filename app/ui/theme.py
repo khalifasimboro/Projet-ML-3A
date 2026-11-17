@@ -27,7 +27,8 @@ def P():
 
 
 def data_uri(nom):
-    return "data:image/png;base64," + base64.b64encode((ASSETS / nom).read_bytes()).decode()
+    mime = "image/jpeg" if nom.endswith(".jpg") else "image/png"
+    return f"data:{mime};base64," + base64.b64encode((ASSETS / nom).read_bytes()).decode()
 
 
 def appliquer():
@@ -57,26 +58,38 @@ html,body,.stApp,[data-testid="stAppViewContainer"]{{background:var(--bg)!import
 .stApp p,.stApp li,.stApp label,.stApp span,.stApp div{{font-family:var(--body)}}
 .stApp [data-testid="stIconMaterial"],.stApp span[class*="material"]{{font-family:'Material Symbols Rounded'!important}}
 [data-testid="stHeader"]{{background:transparent}}
-.block-container{{padding-top:2.2rem;padding-bottom:3rem;max-width:1380px}}
+.block-container{{padding:1.6rem 2.2rem 2.5rem!important;max-width:1720px}}
 h1,h2,h3,h4{{font-family:var(--display)!important;letter-spacing:-.01em;color:var(--fg)}}
-/* rail sombre dans les deux thèmes : il porte le logo */
-[data-testid="stSidebar"]{{background:{RAIL['bg']}!important;border-right:1px solid {RAIL['line']}}}
+/* rail sombre dans les deux thèmes : il porte le logo ; compact pour tenir sans défiler */
+[data-testid="stSidebar"]{{background:radial-gradient(120% 38% at 0% 100%,rgba(242,122,31,.30),rgba(242,122,31,.06) 45%,transparent 70%),{RAIL['bg']}!important;border-right:1px solid {RAIL['line']}}}
+[data-testid="stSidebar"][data-collapsed="false"]{{width:262px!important;min-width:262px!important;max-width:262px!important}}
 [data-testid="stSidebar"] *{{color:{RAIL['fg']}}}
-[data-testid="stSidebar"] [data-testid="stSidebarNavSeparator"]{{border-color:{RAIL['line']}}}
-[data-testid="stSidebarNavLink"]{{border-radius:8px;border:1px solid transparent;padding:.45rem .6rem}}
+[data-testid="stSidebarUserContent"]{{padding:.3rem 1rem 1rem!important}}
+[data-testid="stSidebarNav"]{{padding-top:0}}
+[data-testid="stSidebarNavItems"]{{padding:0 .6rem .2rem!important}}
+[data-testid="stSidebarNavItems"] li{{margin:0}}
+[data-testid="stSidebar"] [data-testid="stSidebarNavSeparator"]{{border-color:{RAIL['line']};margin:.3rem 0}}
+[data-testid="stSidebarNavLink"]{{border-radius:8px;border:1px solid transparent;padding:.22rem .55rem!important;min-height:0;line-height:1.35;margin:1px 0}}
+[data-testid="stSidebarNavLink"] span{{font-size:.82rem}}
+[data-testid="stSidebarNavLink"] [data-testid="stIconMaterial"]{{font-size:1.05rem}}
 [data-testid="stSidebarNavLink"]:hover{{background:#14161C}}
 [data-testid="stSidebarNavLink"][aria-current="page"]{{background:linear-gradient(90deg,rgba(242,122,31,.22),rgba(242,122,31,.04));border-color:rgba(242,122,31,.38)}}
 [data-testid="stSidebarNavLink"][aria-current="page"] span{{color:#fff;font-weight:600}}
 [data-testid="stSidebarNavLink"][aria-current="page"] [data-testid="stIconMaterial"]{{color:#F58A2E}}
-[data-testid="stSidebar"] header span,[data-testid="stNavSectionHeader"] span{{color:{RAIL['muted']}!important;font-size:.68rem;letter-spacing:.12em;text-transform:uppercase}}
-[data-testid="stSidebar"] [data-testid="stLogo"],[data-testid="stSidebarHeader"] img{{height:5.4rem!important;max-width:100%;margin:.4rem auto .2rem}}
-[data-testid="stSidebarHeader"]{{height:auto;padding:1rem 1rem .4rem;justify-content:center}}
+[data-testid="stNavSectionHeader"]{{margin:.55rem 0 .1rem!important;padding:0 .55rem!important;min-height:0}}
+[data-testid="stSidebar"] header span,[data-testid="stNavSectionHeader"] span{{color:{RAIL['muted']}!important;font-size:.62rem;letter-spacing:.12em;text-transform:uppercase}}
+[data-testid="stSidebar"] [data-testid="stLogo"],[data-testid="stSidebarHeader"] img{{height:4.1rem!important;max-width:100%;margin:.1rem auto 0}}
+[data-testid="stSidebarHeader"]{{height:auto;padding:.8rem 1rem .1rem;justify-content:center;margin-bottom:0}}
+[data-testid="stSidebar"] [data-testid="stWidgetLabel"] p{{font-size:.7rem;color:{RAIL['muted']}!important}}
+[data-testid="stSidebar"] [data-testid="stButtonGroup"] button{{min-height:1.7rem;padding:.1rem .42rem;font-size:.72rem}}
+[data-testid="stSidebar"] [data-testid="stButtonGroup"] button p{{font-size:.72rem}}
+[data-testid="stSidebar"] [data-testid="stHorizontalBlock"]{{gap:.6rem}}
 [data-testid="stSidebar"] button[aria-checked="false"]{{background:#14161C!important;border-color:{RAIL['line']}!important}}
 [data-testid="stSidebar"] button[aria-checked="false"] *{{color:{RAIL['fg']}!important}}
 [data-testid="stSidebar"] button[aria-checked="true"]{{background:#F27A1F!important;border-color:#F27A1F!important}}
 [data-testid="stSidebar"] button[aria-checked="true"] *{{color:#fff!important}}
-.bg-model{{border:1px solid {RAIL['line']};border-radius:10px;padding:.7rem .8rem;font-size:.74rem;color:{RAIL['muted']}!important;background:#0F1116;line-height:1.5}}
-.bg-model b{{display:flex;align-items:center;gap:.45rem;font-weight:600;margin-bottom:.2rem}}
+.bg-model{{border:1px solid {RAIL['line']};border-radius:10px;padding:.55rem .75rem;font-size:.7rem;color:{RAIL['muted']}!important;background:rgba(15,17,22,.85);line-height:1.45}}
+.bg-model b{{display:flex;align-items:center;gap:.45rem;font-weight:600;margin-bottom:.15rem}}
 .bg-model span{{color:{RAIL['muted']}!important}}
 /* cartes */
 [class*="st-key-bgc"]{{background:var(--surface);border:1px solid var(--line)!important;border-radius:14px!important;box-shadow:var(--shadow)}}

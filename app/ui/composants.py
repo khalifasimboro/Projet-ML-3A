@@ -64,8 +64,8 @@ def note(texte):
 
 
 def pied():
-    html(f'<div class="bg-foot"><span>Ballguard · {T("Maintenance prédictive des roulements", "Predictive maintenance for bearings")}'
-         f'</span><span>{T("Groupe 4 · École Centrale Casablanca", "Group 4 · École Centrale Casablanca")}</span></div>')
+    html(f'<div class="bg-foot"><span>Ballguard© · {T("Maintenance prédictive des roulements", "Predictive maintenance for bearings")}</span>'
+         f'<span>{T("Une seconde de vibration suffit : Ballguard donne l’alarme, le type de défaut et l’explication.", "One second of vibration is enough: Ballguard gives the alarm, the fault type and the explanation.")}</span></div>')
 
 
 # ------------------------------------------------------------------ graphiques

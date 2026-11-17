@@ -2,7 +2,7 @@
 
 Diagnostic de roulements par autoencodeurs : **détection d'anomalie** et **clustering** à partir de signaux vibratoires, appliqués à la maintenance prédictive.
 
-Projet ML 3A, sujet 6, Groupe 4, École Centrale Casablanca.
+Projet ML 3A, sujet 6.
 
 ## Ce que fait le projet
 
