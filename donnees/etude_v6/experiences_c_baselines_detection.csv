@@ -1,0 +1,4 @@
+methode,auroc,pr_auc,precision,rappel,fausses_alarmes,manques,taux_fausses_alarmes,seuil_val_safe_p99
+Isolation Forest,1.0,1.0,0.9960513326752222,1.0,4,0,0.015625,0.5651653969339895
+One-Class SVM,1.0,1.0,0.9892156862745098,1.0,11,0,0.04296875,1.2880802637046527
+PCA reconstruction,1.0,1.0,0.9970355731225297,1.0,3,0,0.01171875,0.1389114111661911

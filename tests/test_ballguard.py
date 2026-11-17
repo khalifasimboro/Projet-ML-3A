@@ -127,3 +127,19 @@ def test_chaine_complete_sur_un_fichier_brut():
 def test_vitesse_inconnue_refusee():
     with pytest.raises(VitesseInconnue):
         diagnostiquer_fichier(charger_modele(), EXEMPLES[0], 12)
+
+
+@besoin_modele
+@besoin_exemples
+@pytest.mark.parametrize("variante", ["km", "gmm", "cnn"])
+def test_les_trois_modeles_identifient_l_etat(variante):
+    """Les variantes de l'étude V6 (MLP-AE + GMM, CNN-AE spectral) donnent le bon état sur les exemples."""
+    modele = charger_modele()
+    index = pd.read_csv(config.DOSSIER_EXEMPLES / "index.csv")
+    for _, l in index.iterrows():
+        res, _, _ = diagnostiquer_fichier(modele, config.DOSSIER_EXEMPLES / l.fichier, l.vitesse, variante)
+        assert res["variante"] == variante
+        assert res["alarme"] == (l.classe != "SAFE"), (variante, l.fichier)
+        assert res["etat_estime"] == l.classe, (variante, l.fichier)
+        assert sum(res["proximite"].values()) == pytest.approx(1.0)
+        assert [c["modele"] for c in res["comparaison"]][-1] == "CNN-AE spectral"

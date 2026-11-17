@@ -1,0 +1,41 @@
+{
+  "description": "Clustering K-means, GMM et BIRCH des latents V5 sans réentraînement AE",
+  "source": "results_v6_autonome\\etude_a",
+  "source_protocol_sha256": "add33b6006a060593b13183c18c5f3c6377988f35da68079971a058b7e2fc2f2",
+  "n_configurations": 20,
+  "n_experiences": 60,
+  "strategies": [
+    "sans_correction",
+    "par_vitesse",
+    "correction_vitesse"
+  ],
+  "familles": [
+    "MLP-AE",
+    "Denoising-AE",
+    "VAE",
+    "CNN-AE spectral"
+  ],
+  "algorithmes": [
+    "K-means",
+    "GMM",
+    "BIRCH"
+  ],
+  "seed": 42,
+  "K": 5,
+  "selection_hyperparametres": {
+    "GMM": "BIC sur train : full/tied/diag/spherical",
+    "BIRCH": "silhouette sur sous-échantillon train, 4 seuils dérivés du train",
+    "K-means": "reproduction du modèle V5, n_init=10"
+  },
+  "scientific_caveats": [
+    "Split V4 provisoire : groupes d'acquisitions indépendants non garantis.",
+    "Le test V5 a déjà été consulté lors des analyses précédentes.",
+    "Les AE denses utilisent 26 descripteurs, le CNN utilise les spectres.",
+    "Un modèle par vitesse : les scores sont calculés séparément.",
+    "Les noms de clusters sont arbitraires et non des étiquettes prédites.",
+    "K=5 est fixé sur la connaissance préalable des 5 états.",
+    "ARI/NMI de test ne servent jamais à choisir les hyperparamètres."
+  ],
+  "sklearn_version": "1.9.1",
+  "python_version": "3.11.9"
+}

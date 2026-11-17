@@ -1,0 +1,45 @@
+{
+  "description": "Protocole V4 élargi aux quatre familles : détection, sans correction, par vitesse, correction.",
+  "cache": "bd_v1.pkl",
+  "cache_sha256": "83f50b4a79d8085c1439b868bee51b237b7105a7575e484300853ee28a76e3f7",
+  "n": 8431,
+  "modeles": [
+    "MLP-AE",
+    "Denoising-AE",
+    "VAE",
+    "CNN-AE spectral"
+  ],
+  "etapes": [
+    "sans_correction",
+    "par_vitesse",
+    "correction_vitesse"
+  ],
+  "classes": [
+    "SAFE",
+    "BALL",
+    "INNER_RACE",
+    "OUTER_RACE",
+    "COMBINED"
+  ],
+  "vitesses": [
+    10,
+    15,
+    20
+  ],
+  "seed": 42,
+  "epochs_torch_max": 25,
+  "mlp_max_iter": 1000,
+  "batch_size": 128,
+  "device": "cpu",
+  "latent_dim": 6,
+  "split": "V4 provisoire, non indépendant",
+  "limites": [
+    "Données spectraux CNN vs 26 features des AE denses.",
+    "CNN: standardisation par vitesse sans log (log V4 réservé aux descripteurs).",
+    "K=5 renseigné par connaissance du nombre de classes.",
+    "La comparaison par vitesse utilise un modèle distinct pour chaque vitesse.",
+    "Le split V4 fichier-par-fichier peut contenir des séries dépendantes.",
+    "Les métriques par vitesse concernent des vitesses vues à l'entraînement.",
+    "Courbes MLP et PyTorch ont des fonctions de perte et arrêts différents."
+  ]
+}
