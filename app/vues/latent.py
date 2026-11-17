@@ -13,11 +13,11 @@ from ui.theme import P, SERIE
 
 
 @st.cache_data(show_spinner=False, max_entries=40)
-def _mesures(corrige, k):
+def _mesures(rep, algo, k):
     bd = donnees.base()
     test = (bd.split == "test").to_numpy()
-    cl = donnees.clusters_test(corrige, k)
-    Z = donnees.artefacts()["latent"]["Z_corr" if corrige else "Z_sans"][test]
+    cl = donnees.clusters_test(rep, algo, k)
+    Z = donnees.artefacts()["latent"][f"Z_{rep}"][test]
     return {"ARI": adjusted_rand_score(bd.classe[test], cl), "NMI": normalized_mutual_info_score(bd.classe[test], cl),
             "silhouette": silhouette_score(Z, cl), "ARI_vitesse": adjusted_rand_score(bd.vitesse[test], cl)}
 
@@ -31,16 +31,20 @@ def page():
              "The autoencoder summarises each signal in 6 numbers. This page shows how signals arrange themselves there, and why speed had to be corrected."))
 
     with st.container(border=True, key=ncle()):
-        a, b, c, d = st.columns([2.2, 0.9, 1.9, 1.5])
-        libelles = {False: T("Sans correction", "No correction"), True: T("Log + standardisation", "Log + scaling")}
-        corrige = a.segmented_control(T("Prétraitement", "Preprocessing"), [False, True], format_func=libelles.get, default=True, key="lat_corr")
-        corrige = True if corrige is None else corrige
-        dim = b.segmented_control("Projection", ["2D", "3D"], default="2D", key="lat_dim") or "2D"
+        a, b = st.columns([3, 1.3])
+        libelles = {"sans": T("MLP-AE sans correction", "MLP-AE, no correction"), "corr": T("MLP-AE corrigé (retenu)", "MLP-AE corrected (selected)"),
+                    "cnn": T("CNN-AE spectral corrigé", "Spectral CNN-AE corrected")}
+        rep = a.segmented_control(T("Représentation", "Representation"), list(libelles), format_func=libelles.get, default="corr", key="lat_rep") or "corr"
+        algo = b.segmented_control(T("Algorithme", "Algorithm"), ["km", "gmm"], format_func={"km": "K-means", "gmm": "GMM"}.get, default="km", key="lat_algo") or "km"
+        b_, c, d = st.columns([1, 2, 2])
+        dim = b_.segmented_control("Projection", ["2D", "3D"], default="2D", key="lat_dim") or "2D"
         coul = c.segmented_control(T("Couleur", "Colour"), ["etat", "cluster", "vitesse"], default="etat", key="lat_col",
                                    format_func={"etat": T("État", "State"), "cluster": "Cluster", "vitesse": T("Vitesse", "Speed")}.get) or "etat"
         k = d.slider(T("Nombre de clusters (k)", "Number of clusters (k)"), 2, 15, 5, key="lat_k")
+    corrige = rep != "sans"
 
-    cl, m = donnees.clusters_test(corrige, k), _mesures(corrige, k)
+    with st.spinner(T("Calcul du clustering…", "Computing the clustering…")):
+        cl, m = donnees.clusters_test(rep, algo, k), _mesures(rep, algo, k)
     c = st.columns(4)
     kpi(c[0], f"ARI {T('vs état', 'vs state')}", nombre(m["ARI"], 3), T("1 = clusters identiques aux états", "1 = clusters match states"))
     kpi(c[1], "NMI", nombre(m["NMI"], 3), T("Information partagée", "Shared information"))
@@ -61,7 +65,7 @@ def page():
             groupes = [(f"{T('vitesse', 'speed')} {v}", col, (test.vitesse == v).to_numpy()) for v, col in zip(VITESSES, (p["BALL"], p["OUTER_RACE"], p["COMBINED"]))]
         else:
             groupes = [(f"cluster {j}", SERIE[j], cl == j) for j in range(k)]
-        XY = art["latent"][f"tsne{dim[0]}_{'corr' if corrige else 'sans'}"]
+        XY = art["latent"][f"tsne{dim[0]}_{rep}"]
         info = np.array([f"{nom_etat(e)} · {T('vitesse', 'speed')} {v} · cluster {j}" for e, v, j in zip(test.classe, test.vitesse, cl)])
         fig = go.Figure()
         for nom, col, masque in groupes:

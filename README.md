@@ -30,7 +30,7 @@ Projet ML 3A, sujet 6, Groupe 4, École Centrale Casablanca.
 
 ## Installation
 
-Python 3.11 est requis (les modèles sont sauvegardés avec scikit-learn 1.6.1).
+Python 3.11 est requis (les modèles sont sauvegardés avec scikit-learn 1.6.1). PyTorch est installé en version CPU (environ 200 Mo) pour le CNN-AE spectral.
 
 ```bash
 python -m venv .venv
@@ -96,6 +96,8 @@ Le premier script lit chaque fichier, fixe le découpage train / validation / te
 - Un fichier illisible a été écarté : la base contient 8 431 signaux.
 
 ## Méthode
+
+L'application propose trois modèles de diagnostic : MLP-AE + K-means (modèle retenu, explicable par descripteur), MLP-AE + GMM et CNN-AE spectral + K-means. Les deux derniers viennent de l'étude comparative V6 du groupe (branche `feature/gt204-gt205-membre-b`) ; ils sont réentraînés par `scripts/entrainer.py`. Les tableaux de cette étude sont dans `donnees/etude_v6/` et affichés dans la page Performances.
 
 | Tâche | Modèle de référence | Modèle avancé |
 |---|---|---|

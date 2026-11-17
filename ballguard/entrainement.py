@@ -12,6 +12,7 @@ from sklearn.cluster import KMeans
 from sklearn.decomposition import PCA
 from sklearn.ensemble import IsolationForest
 from sklearn.manifold import TSNE
+from sklearn.mixture import GaussianMixture
 from sklearn.metrics import (adjusted_rand_score, confusion_matrix, normalized_mutual_info_score,
                              roc_auc_score, roc_curve, silhouette_score)
 from sklearn.model_selection import train_test_split
@@ -54,6 +55,63 @@ def _contingence(classes, clusters, k):
 
 def _tsne(Z, dim):
     return TSNE(n_components=dim, random_state=SEED, perplexity=30).fit_transform(Z).astype(np.float32)
+
+
+def _nommer(clusters_train, classes_train):
+    tab = pd.crosstab(clusters_train, classes_train)
+    return {int(k): str(v) for k, v in tab.idxmax(axis=1).items()}
+
+
+def _variantes(bd, spectres, classe, vitesse, m_train, m_val, m_test, safe, y, Z_norm, km_final, res_km, exact_km, journal):
+    """Modèles repris de l'étude comparative V6 : MLP-AE + GMM, et CNN-AE spectral (détection + K-means).
+
+    Renvoie (objets à embarquer dans le modèle, tableau de comparaison pour l'application).
+    """
+    from .cnn import encoder_cnn, entrainer_cnn, erreur_cnn, etat
+
+    def ligne(nom, cl, Zt, exact):
+        return {"variante": nom, "ARI": float(adjusted_rand_score(classe[m_test], cl)),
+                "NMI": float(normalized_mutual_info_score(classe[m_test], cl)),
+                "silhouette": float(silhouette_score(Zt, cl)), "ARI_vitesse": float(adjusted_rand_score(vitesse[m_test], cl)),
+                "exactitude": exact}
+
+    table = [ligne("MLP-AE + K-means", km_final.predict(Z_norm[m_test]), Z_norm[m_test], exact_km)]
+
+    journal("Variante : MLP-AE + GMM (covariance complète)")
+    gmm = GaussianMixture(K, covariance_type="full", random_state=SEED, n_init=3).fit(Z_norm[m_train])
+    noms_gmm = _nommer(gmm.predict(Z_norm[m_train]), classe[m_train])
+    cl = gmm.predict(Z_norm[m_test])
+    table.append(ligne("MLP-AE + GMM", cl, Z_norm[m_test], float(np.mean([noms_gmm[c] for c in cl] == classe[m_test]))))
+
+    journal("Variante : CNN-AE spectral, détection (entraîné sur les spectres sains)")
+    sc_det = StandardScaler().fit(spectres[m_train & safe])
+    S_det = sc_det.transform(spectres).astype(np.float32)
+    cnn_det, _ = entrainer_cnn(S_det[m_train & safe], S_det[m_val & safe])
+    score = erreur_cnn(cnn_det, S_det)
+    seuil = float(np.percentile(score[m_val & safe], PERCENTILE_SEUIL))
+
+    journal("Variante : CNN-AE spectral, clustering (spectres standardisés par vitesse)")
+    sc_v = {v: StandardScaler().fit(spectres[m_train & (vitesse == v)]) for v in VITESSES}
+    S_clu = np.zeros_like(spectres, dtype=np.float32)
+    for v, sc in sc_v.items():
+        S_clu[vitesse == v] = sc.transform(spectres[vitesse == v])
+    cnn_clu, _ = entrainer_cnn(S_clu[m_train], S_clu[m_val])
+    Z_cnn = encoder_cnn(cnn_clu, S_clu)
+    km_cnn = KMeans(K, n_init=10, random_state=SEED).fit(Z_cnn[m_train])
+    noms_cnn = _nommer(km_cnn.labels_, classe[m_train])
+    cl = km_cnn.predict(Z_cnn[m_test])
+    table.append(ligne("CNN-AE spectral + K-means", cl, Z_cnn[m_test], float(np.mean([noms_cnn[c] for c in cl] == classe[m_test]))))
+    for l in table:
+        journal(f"  {l['variante']:<28} ARI {l['ARI']:.4f}  silhouette {l['silhouette']:.4f}  exactitude {l['exactitude']:.4f}")
+    journal(f"  CNN détection : seuil {seuil:.4f}, fausses alarmes {int((score[m_test & safe] > seuil).sum())}")
+
+    variantes = {
+        "gmm": {"gmm": gmm, "nom_cluster": noms_gmm},
+        "cnn": {"scaler_det": sc_det, "poids_det": etat(cnn_det), "seuil": seuil,
+                "scalers_vitesse": sc_v, "poids_clu": etat(cnn_clu), "kmeans": km_cnn, "nom_cluster": noms_cnn,
+                "score": score, "Z": Z_cnn},
+    }
+    return variantes, table
 
 
 def entrainer(bd, spectres, journal=print):
@@ -181,10 +239,28 @@ def entrainer(bd, spectres, journal=print):
            "classe_avant": [eta2(F[m_train, j], classe[m_train]) for j in range(len(FEATURES))],
            "classe_apres": [eta2(X_norm[m_train, j], classe[m_train]) for j in range(len(FEATURES))]}
 
+    # ------------------------------------------------------------ variantes de l'étude V6 (option B)
+    variantes, table_variantes = _variantes(bd, spectres, classe, vitesse, m_train, m_val, m_test, safe, y,
+                                            Z_norm, km_final, res_ae_norm, exactitude, journal)
+    for nom in ("CNN-AE spectral",):
+        s = variantes["cnn"]["score"]
+        seuil = variantes["cnn"]["seuil"]
+        pred = (s[m_test] > seuil).astype(int)
+        tn, fp, fn, tp = confusion_matrix(y[m_test], pred, labels=[0, 1]).ravel()
+        table_det.append({"modele": nom, "AUROC": float(roc_auc_score(y[m_test], s[m_test])),
+                          "rappel": tp / (tp + fn), "precision": tp / max(tp + fp, 1),
+                          "fausses_alarmes": fp / (fp + tn), "nb_fausses_alarmes": int(fp),
+                          "confusion": [[int(tn), int(fp)], [int(fn), int(tp)]]})
+        fpr, tpr, _ = roc_curve(y[m_test], s[m_test])
+        roc[nom] = (fpr.astype(np.float32), tpr.astype(np.float32))
+        seuils[nom] = seuil
+    Z_cnn = variantes["cnn"].pop("Z")
+    variantes["cnn"].pop("score")
+
     journal("Projections t-SNE de l'espace latent")
-    latent = {"Z_sans": Z.astype(np.float32), "Z_corr": Z_norm.astype(np.float32),
-              "tsne2_sans": _tsne(Z[m_test], 2), "tsne2_corr": _tsne(Z_norm[m_test], 2),
-              "tsne3_sans": _tsne(Z[m_test], 3), "tsne3_corr": _tsne(Z_norm[m_test], 3)}
+    latent = {"Z_sans": Z.astype(np.float32), "Z_corr": Z_norm.astype(np.float32), "Z_cnn": Z_cnn.astype(np.float32),
+              "tsne2_sans": _tsne(Z[m_test], 2), "tsne2_corr": _tsne(Z_norm[m_test], 2), "tsne2_cnn": _tsne(Z_cnn[m_test], 2),
+              "tsne3_sans": _tsne(Z[m_test], 3), "tsne3_corr": _tsne(Z_norm[m_test], 3), "tsne3_cnn": _tsne(Z_cnn[m_test], 3)}
 
     # ------------------------------------------------------------ références « saines » pour l'application
     reference = {}
@@ -201,6 +277,7 @@ def entrainer(bd, spectres, journal=print):
         "diagnostic": {"a_loguer": A_LOGUER, "scalers_vitesse": scalers_vitesse, "autoencodeur": ae_norm,
                        "kmeans": km_final, "nom_cluster": nom_cluster},
         "reference": reference,
+        "variantes": variantes,
         "performances_test": {"detection": {k: table_det[2][k] for k in ("AUROC", "rappel", "fausses_alarmes")},
                               "diagnostic": {**res_ae_norm, "exactitude": exactitude}},
     }
@@ -218,6 +295,7 @@ def entrainer(bd, spectres, journal=print):
                        "contingence_corr": _contingence(classe[m_test], cl_norm, K),
                        "exactitude": exactitude},
         "latent": latent,
+        "variantes": table_variantes,
         "permutation": {"detection": perm_det, "clustering": perm_clu},
         "eta": eta,
     }

@@ -5,12 +5,13 @@ import streamlit as st
 
 from ballguard.config import CLASSES, VITESSES
 from ui import donnees
+from vues import etude_v6
 from ui.composants import ncle
 from ui.composants import carte_chaleur, entete, html, pied, titre_carte, tracer
 from ui.i18n import T, nom_etat, nombre
 from ui.theme import P
 
-NOMS = {"Isolation Forest": ("Isolation Forest", "Isolation Forest"), "ACP": ("ACP", "PCA"),
+NOMS = {"Isolation Forest": ("Isolation Forest", "Isolation Forest"), "ACP": ("ACP", "PCA"), "CNN-AE spectral": ("CNN-AE spectral", "Spectral CNN-AE"),
         "AE (descripteurs)": ("Autoencodeur (descripteurs)", "Autoencoder (features)"),
         "AE (spectre)": ("Autoencodeur (spectre)", "Autoencoder (spectrum)")}
 
@@ -22,7 +23,7 @@ def page():
     entete(T("Modèles", "Models"), T("Performances des modèles", "Model performance"),
            T("Les autoencodeurs sont comparés à des modèles de référence simples, sur des signaux jamais vus pendant l’entraînement.",
              "Autoencoders are compared with simple baselines, on signals never seen during training."))
-    t1, t2, t3 = st.tabs([T("Détection", "Detection"), "Clustering", T("Interprétabilité", "Interpretability")])
+    t1, t2, t3, t4 = st.tabs([T("Détection", "Detection"), "Clustering", T("Interprétabilité", "Interpretability"), T("Étude comparative V6", "V6 comparative study")])
 
     with t1:
         g, d = st.columns([1.5, 1])
@@ -30,7 +31,7 @@ def page():
             titre_carte(T("Détection d’anomalie sur le jeu de test", "Anomaly detection on the test set"),
                         T(f"{art['meta']['n_test']} signaux, seuil fixé sur les signaux sains de validation", f"{art['meta']['n_test']} signals, threshold set on healthy validation signals"))
             roles = {"Isolation Forest": T("Référence", "Baseline"), "ACP": T("Référence", "Baseline"),
-                     "AE (descripteurs)": T("Modèle retenu", "Selected model"), "AE (spectre)": T("Variante", "Variant")}
+                     "AE (descripteurs)": T("Modèle retenu", "Selected model"), "AE (spectre)": T("Variante", "Variant"), "CNN-AE spectral": T("Étude V6", "V6 study")}
             lignes = "".join(
                 f'<tr class="{"hl" if l["modele"] == "AE (descripteurs)" else ""}"><td>{T(*NOMS[l["modele"]])}</td><td>{roles[l["modele"]]}</td>'
                 f'<td class="n">{nombre(l["AUROC"], 3)}</td><td class="n">{nombre(l["rappel"], 3)}</td><td class="n">{nombre(l["precision"], 3)}</td>'
@@ -48,7 +49,7 @@ def page():
         with g.container(border=True, key=ncle()):
             titre_carte(T("Courbes ROC", "ROC curves"), T("Zoom sur les faibles taux de fausses alarmes", "Zoom on low false-alarm rates"))
             fig = go.Figure()
-            for (nom, (fpr, tpr)), col in zip(det["roc"].items(), (p["muted"], p["BALL"], p["accent"], p["SAFE"])):
+            for (nom, (fpr, tpr)), col in zip(det["roc"].items(), (p["muted"], p["BALL"], p["accent"], p["SAFE"], p["INNER_RACE"])):
                 fig.add_scatter(x=fpr, y=tpr, name=T(*NOMS[nom]), line=dict(color=col, width=2, shape="hv"))
             fig.update_layout(xaxis=dict(title=T("taux de fausses alarmes", "false-alarm rate"), range=[-0.001, 0.05]),
                               yaxis=dict(title=T("taux de détection", "detection rate"), range=[0.95, 1.003]))
@@ -114,4 +115,6 @@ def page():
                         T("Quels descripteurs trahissent chaque défaut (log10 de l’erreur moyenne, jeu de test)", "Which features give each fault away (log10 of mean error, test set)"))
             carte_chaleur(np.log10(np.array(det["erreur_par_classe"])).round(2), feats, [nom_etat(c) for c in CLASSES], 330, texte=False, barre=True,
                           couleurs=[[0, p["surface2"]], [0.5, p["INNER_RACE"]], [1, p["accent"]]], marges=dict(l=120, r=8, t=10, b=90))
+    with t4:
+        etude_v6.onglet(p, art)
     pied()

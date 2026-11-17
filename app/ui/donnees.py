@@ -5,6 +5,7 @@ import pandas as pd
 import streamlit as st
 from sklearn.cluster import KMeans
 from sklearn.decomposition import PCA
+from sklearn.mixture import GaussianMixture
 from sklearn.preprocessing import StandardScaler
 
 from ballguard import config
@@ -63,10 +64,16 @@ def acp_train():
     return train[["classe", "vitesse"]].assign(c1=Z[:, 0], c2=Z[:, 1]), acp.explained_variance_ratio_
 
 
-@st.cache_data(show_spinner=False, max_entries=40)
-def clusters_test(corrige, k):
-    """k-means à k groupes appris sur les codes latents du train ; renvoie les clusters du test."""
+@st.cache_data(show_spinner=False, max_entries=60)
+def clusters_test(rep, algo, k):
+    """Clustering à k groupes appris sur les codes latents du train ; renvoie les clusters du test.
+
+    rep : "sans" / "corr" (MLP-AE sans ou avec correction de vitesse) ou "cnn" (CNN-AE spectral corrigé).
+    algo : "km" (K-means) ou "gmm" (mélange de gaussiennes, covariance complète).
+    """
     bd = base()
-    Z = artefacts()["latent"]["Z_corr" if corrige else "Z_sans"]
-    km = KMeans(k, n_init=10, random_state=config.SEED).fit(Z[(bd.split == "train").to_numpy()])
-    return km.predict(Z[(bd.split == "test").to_numpy()])
+    Z = artefacts()["latent"][f"Z_{rep}"]
+    tr, te = (bd.split == "train").to_numpy(), (bd.split == "test").to_numpy()
+    if algo == "gmm":
+        return GaussianMixture(k, covariance_type="full", random_state=config.SEED, n_init=3).fit(Z[tr]).predict(Z[te])
+    return KMeans(k, n_init=10, random_state=config.SEED).fit(Z[tr]).predict(Z[te])
