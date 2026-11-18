@@ -1,6 +1,4 @@
 """Accueil : l'essentiel en un écran (reprend la maquette validée)."""
-import html as _html
-
 import streamlit as st
 
 from ui import donnees
@@ -35,20 +33,20 @@ VAGUE = '<path d="M2 14c2.5-6 5-6 7.5 0s5 6 7.5 0 3.5-4 5-2"/>'
 
 def _css():
     return f"""<style>
-.st-key-bghero{{position:relative;margin:-2.2rem -2.2rem 0;width:calc(100% + 4.4rem)!important;max-width:none!important;padding:2rem 2.2rem 2.4rem!important;border-radius:0 0 0 0;
-  background:linear-gradient(90deg,var(--bg) 0%,var(--bg) 34%,rgba(0,0,0,0) 72%),linear-gradient(0deg,var(--bg) 0%,rgba(0,0,0,0) 45%),
-  url("{data_uri('hero.jpg')}") right top/auto 118% no-repeat}}
-.bg-hero h2{{font-family:var(--display);font-size:clamp(1.7rem,2.7vw,2.35rem);line-height:1.12;margin:0 0 .45rem;font-weight:600;padding:0;max-width:22ch}}
-.bg-hero h2 em{{font-style:normal;color:var(--accent)}}
-.bg-hero .salut{{font-size:.8rem;font-weight:600;letter-spacing:.06em;color:var(--accent);margin:0 0 .3rem}}
-.bg-hero p.lead{{color:var(--muted);margin:0;font-size:.98rem}}
+.st-key-bghero{{margin:-2.2rem -2.2rem 0;width:calc(100% + 4.4rem)!important;max-width:none!important;padding:0!important}}
+.bg-banniere{{height:clamp(150px,15vw,230px);
+  background:linear-gradient(0deg,var(--bg) 0%,rgba(0,0,0,0) 38%),url("{data_uri('hero.jpg')}") center 42%/cover no-repeat}}
+.bg-kpis{{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1rem;align-items:stretch}}
+@media (max-width:1100px){{.bg-kpis{{grid-template-columns:repeat(2,minmax(0,1fr))}}}}
+@media (max-width:560px){{.bg-kpis{{grid-template-columns:1fr}}}}
 .bg-k{{display:flex;justify-content:space-between;gap:.8rem;align-items:flex-start;background:var(--surface);border:1px solid var(--line);
-  border-radius:14px;padding:1.05rem 1.2rem;box-shadow:var(--shadow);height:100%}}
-.bg-k .lab{{font-size:.7rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:500}}
+  border-radius:14px;padding:1.05rem 1.2rem;box-shadow:var(--shadow);height:100%;box-sizing:border-box;min-width:0}}
+.bg-k>div{{min-width:0}}
+.bg-k .lab{{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:.7rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:500}}
 .bg-k .val{{font-family:var(--display);font-size:2rem;font-weight:600;line-height:1.2;font-variant-numeric:tabular-nums}}
 .bg-k .val small{{font-size:1rem;color:var(--fg);font-weight:600;margin-left:.2rem}}
-.bg-k .hint{{font-size:.8rem;color:var(--muted)}}
-.bg-k svg{{width:38px;height:38px;flex:none;margin-top:.5rem}}
+.bg-k .hint{{font-size:.8rem;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}}
+.bg-k svg{{width:34px;height:34px;flex:none;margin-top:.5rem}}
 .st-key-bgpanneau{{background:var(--surface);border:1px solid var(--line)!important;border-radius:16px!important;box-shadow:var(--shadow);padding:1.1rem 1.2rem!important}}
 .bg-ptitre{{display:flex;align-items:center;gap:.6rem;font-family:var(--display);font-weight:600;font-size:1.08rem;margin:0 0 .2rem}}
 .bg-ptitre svg{{width:26px;height:26px}}
@@ -64,6 +62,9 @@ def _css():
 .bg-m b{{display:block;font-family:var(--display);font-size:1.02rem;font-weight:600}}
 .bg-m{{padding-bottom:1.1rem}}
 .bg-m p{{margin:.15rem 0 0!important;color:var(--muted);font-size:.86rem}}
+[data-testid="stColumn"]:has([class*="st-key-bgmod"])>[data-testid="stVerticalBlock"],
+[data-testid="stLayoutWrapper"]:has(>[class*="st-key-bgmod"]),[class*="st-key-bgmod"]{{height:100%}}
+[class*="st-key-bgmod"]>div:has([data-testid="stPageLink"]){{margin-top:auto}}
 [class*="st-key-bgmod"] [data-testid="stPageLink"] a{{display:inline-flex;padding:.35rem .9rem}}
 </style>"""
 
@@ -77,20 +78,18 @@ def page():
     html(_css())
 
     with st.container(key="bghero"):
-        nom = _html.escape(p.get("nom", ""))
-        st.markdown(f'<div class="bg-hero"><p class="salut">{T("Tableau de bord", "Dashboard")}</p>'
-                    f'<h2>{T(f"Bonjour <em>{nom}</em>", f"Hello <em>{nom}</em>")}</h2></div>', unsafe_allow_html=True)
+        html('<div class="bg-banniere" role="img" aria-label="Train à grande vitesse"></div>')
 
     cartes = [
         (T("Signaux analysés", "Signals analysed"), nombre(art["meta"]["n"], 0), "", T("5 états · 3 vitesses", "5 states · 3 speeds"), _svg(I_BARRES, ac)),
         (T("Défauts détectés", "Faults detected"), nombre(det["rappel"] * 100, 0), "%", T("Jeu de test", "Test set"), _svg(I_COCHE, "var(--ok)")),
         (T("Fausses alarmes", "False alarms"), nombre(det["fausses_alarmes"] * 100, 1), "%",
-         T(f"{det['nb_fausses_alarmes']} signaux sains sur {n_sains}", f"{det['nb_fausses_alarmes']} healthy signals out of {n_sains}"), _svg(I_CIBLE, "var(--muted)")),
-        (T("Accord clusters / états", "Cluster / state agreement"), nombre(art["clustering"]["corrige"]["autoencodeur"]["ARI"], 3), "", "ARI", _svg(I_RESEAU, "var(--INNER-RACE)")),
+         T(f"{det['nb_fausses_alarmes']} sains sur {n_sains}", f"{det['nb_fausses_alarmes']} healthy out of {n_sains}"), _svg(I_CIBLE, "var(--muted)")),
+        (T("Accord clusters/états", "Cluster/state agreement"), nombre(art["clustering"]["corrige"]["autoencodeur"]["ARI"], 3), "", "ARI", _svg(I_RESEAU, "var(--INNER-RACE)")),
     ]
-    for col, (lab, val, unite, hint, ic) in zip(st.columns(4), cartes):
-        col.markdown(f'<div class="bg-k"><div><div class="lab">{lab}</div><div class="val">{val}{"<small>" + unite + "</small>" if unite else ""}</div>'
-                 f'<div class="hint">{hint}</div></div>{ic}</div>', unsafe_allow_html=True)
+    html('<div class="bg-kpis">' + "".join(
+        f'<div class="bg-k"><div><div class="lab" title="{lab}">{lab}</div><div class="val">{val}{"<small>" + unite + "</small>" if unite else ""}</div>'
+        f'<div class="hint">{hint}</div></div>{ic}</div>' for lab, val, unite, hint, ic in cartes) + "</div>")
 
     with st.container(key="bgpanneau", gap="medium"):
         etapes = [(T("Signal brut", "Raw signal"), T("Fichier Excel, 1 seconde", "Excel file, 1 second")),
