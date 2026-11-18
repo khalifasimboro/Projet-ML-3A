@@ -9,7 +9,7 @@ from ballguard.descripteurs import frequences_spectre
 from ui import donnees
 from ui.composants import ncle
 from ui.composants import entete, html, kpi, pastille, pied, score_txt, titre_carte, tracer
-from ui.i18n import T, nom_etat, nombre
+from ui.i18n import T, nom_desc, nom_etat, nombre
 from ui.theme import P
 
 SUIVIS = ["rms_vb", "kurtosis_vb", "crete_vb", "pkpk_vb", "bande4_vb", "bande6_vb", "rms_v", "kurtosis_v"]
@@ -146,7 +146,7 @@ def page():
                             line=dict(color=p["alarm"] if mauvais else p["accent"], width=1.3))
             fig.update_layout(xaxis_title=T("fréquence (kHz)", "frequency (kHz)"), yaxis=dict(type="log", title=T("puissance", "power")))
             tracer(fig, 250)
-            cartes = "".join(_carte(n, vus[n].tolist(), (ref["p01"][feats.index(n)], ref["p99"][feats.index(n)])) for n in SUIVIS)
+            cartes = "".join(_carte(nom_desc(n), vus[n].tolist(), (ref["p01"][feats.index(n)], ref["p99"][feats.index(n)])) for n in SUIVIS)
             html(f'<div class="bg-feats">{cartes}</div>')
 
     direct()

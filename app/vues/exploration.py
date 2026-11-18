@@ -1,4 +1,6 @@
 """Exploration des données : base, signaux, descripteurs, effet de la vitesse."""
+from pathlib import Path
+
 import numpy as np
 import plotly.graph_objects as go
 import streamlit as st
@@ -7,8 +9,8 @@ from ballguard.config import CLASSES, FS, VITESSES
 from ballguard.descripteurs import FEATURES, frequences_spectre
 from ui import donnees
 from ui.composants import ncle
-from ui.composants import carte_chaleur, entete, kpi, pied, titre_carte, tracer
-from ui.i18n import T, nom_etat, nombre
+from ui.composants import carte_chaleur, entete, html, kpi, pied, titre_carte, tracer
+from ui.i18n import FORMULES, T, bornes_bande, nom_desc, nom_etat, nombre
 from ui.theme import P
 
 
@@ -27,8 +29,10 @@ def page():
     entete(T("Données", "Data"), T("Exploration des données", "Data exploration"),
            T("Comprendre la base avant de modéliser : ce qui distingue un roulement sain d’un roulement défectueux, et ce qui peut tromper les modèles.",
              "Understand the data before modelling: what separates a healthy bearing from a faulty one, and what can mislead the models."))
-    t1, t2, t3, t4 = st.tabs([T("Vue d’ensemble", "Overview"), T("Signaux", "Signals"),
-                              T("Descripteurs", "Features"), T("Effet de la vitesse", "Speed effect")])
+    t1, t2, t3, t4, t5 = st.tabs([T("Vue d’ensemble", "Overview"), T("Signaux", "Signals"),
+                                  T("Descripteurs", "Features"), T("Effet de la vitesse", "Speed effect"),
+                                  T("Rapport détaillé (YData)", "Detailed report (YData)")],
+                                 key="exp_onglets", on_change="rerun")
 
     with t1:
         c = st.columns(4)
@@ -86,32 +90,34 @@ def page():
 
     with t3:
         train = bd[bd.split == "train"]
+        _glossaire()
         with st.container(border=True, key=ncle()):
             a, b = st.columns([2, 1])
             a.markdown(f'<p class="bg-h">{T("Distribution d’un descripteur par état", "Feature distribution per state")}</p><p class="bg-sub">{T("Jeu d’entraînement uniquement", "Training set only")}</p>', unsafe_allow_html=True)
-            desc = b.selectbox(T("Descripteur", "Feature"), FEATURES, index=FEATURES.index("kurtosis_vb"), key="exp_desc")
+            desc = b.selectbox(T("Descripteur", "Feature"), FEATURES, index=FEATURES.index("kurtosis_vb"), key="exp_desc", format_func=lambda f: nom_desc(f, True))
             fig = go.Figure()
             for cl in CLASSES:
                 fig.add_box(y=train.loc[train.classe == cl, desc], name=nom_etat(cl), marker=dict(color=p[cl], size=3), line=dict(width=1.4), boxpoints="outliers")
-            fig.update_layout(yaxis_title=desc, yaxis_type="log" if desc.split("_")[0] in ("kurtosis", "rms", "pkpk", "crete") else "linear")
+            fig.update_layout(yaxis_title=nom_desc(desc), yaxis_type="log" if desc.split("_")[0] in ("kurtosis", "rms", "pkpk", "crete") else "linear")
             tracer(fig, 380, legende=False)
         with st.container(border=True, key=ncle()):
             titre_carte(T("Corrélations entre descripteurs", "Feature correlations"), T("Beaucoup de redondance : l’autoencodeur la compresse", "A lot of redundancy: the autoencoder compresses it"))
             corr = train[FEATURES].corr().round(2)
-            carte_chaleur(corr.to_numpy(), FEATURES, FEATURES, 560, texte=False, barre=True, zmin=-1, zmax=1,
-                          couleurs=[[0, p["BALL"]], [0.5, p["surface2"]], [1, p["accent"]]], marges=dict(l=90, r=10, t=10, b=90))
+            noms = [nom_desc(f) for f in FEATURES]
+            carte_chaleur(corr.to_numpy(), noms, noms, 620, texte=False, barre=True, zmin=-1, zmax=1,
+                          couleurs=[[0, p["BALL"]], [0.5, p["surface2"]], [1, p["accent"]]], marges=dict(l=175, r=10, t=10, b=165))
 
     with t4:
         train = bd[bd.split == "train"]
         g, d = st.columns(2)
         with g.container(border=True, key=ncle()):
             titre_carte(T("La vitesse, facteur de confusion", "Speed as a confounder"), T("Médiane par état quand la vitesse augmente", "Median per state as speed increases"))
-            desc = st.selectbox(T("Descripteur", "Feature"), FEATURES, index=0, key="exp_desc_v")
+            desc = st.selectbox(T("Descripteur", "Feature"), FEATURES, index=0, key="exp_desc_v", format_func=lambda f: nom_desc(f, True))
             med = train.groupby(["classe", "vitesse"])[desc].median()
             fig = go.Figure()
             for cl in CLASSES:
                 fig.add_scatter(x=VITESSES, y=med.loc[cl].reindex(VITESSES), name=nom_etat(cl), mode="lines+markers", line=dict(color=p[cl], width=2), marker=dict(size=7))
-            fig.update_layout(xaxis=dict(title=T("vitesse", "speed"), tickvals=VITESSES), yaxis_title=desc)
+            fig.update_layout(xaxis=dict(title=T("vitesse", "speed"), tickvals=VITESSES), yaxis_title=nom_desc(desc))
             tracer(fig, 330)
         with d.container(border=True, key=ncle()):
             eta = art["eta"]
@@ -126,9 +132,62 @@ def page():
         with st.container(border=True, key=ncle()):
             titre_carte(T("Descripteur par descripteur", "Feature by feature"), T("Un bon descripteur dépend de l’état, pas de la vitesse", "A good feature depends on the state, not on speed"))
             fig = go.Figure()
-            fig.add_bar(name=T("η² vitesse (avant)", "η² speed (before)"), x=eta["features"], y=eta["vitesse_avant"], marker_color=p["muted"])
-            fig.add_bar(name=T("η² état (avant)", "η² state (before)"), x=eta["features"], y=eta["classe_avant"], marker_color=p["BALL"])
-            fig.add_bar(name=T("η² état (après)", "η² state (after)"), x=eta["features"], y=eta["classe_apres"], marker_color=p["accent"])
+            fig.add_bar(name=T("η² vitesse (avant)", "η² speed (before)"), x=[nom_desc(f) for f in eta["features"]], y=eta["vitesse_avant"], marker_color=p["muted"])
+            fig.add_bar(name=T("η² état (avant)", "η² state (before)"), x=[nom_desc(f) for f in eta["features"]], y=eta["classe_avant"], marker_color=p["BALL"])
+            fig.add_bar(name=T("η² état (après)", "η² state (after)"), x=[nom_desc(f) for f in eta["features"]], y=eta["classe_apres"], marker_color=p["accent"])
             fig.update_layout(barmode="group", yaxis_range=[0, 1.05], xaxis_tickangle=-50)
-            tracer(fig, 380, marges=dict(l=40, r=10, t=10, b=110))
+            tracer(fig, 440, marges=dict(l=40, r=10, t=10, b=170))
+    if t5.open:
+        with t5:
+            _rapport()
     pied()
+
+
+def _glossaire():
+    """Tableau des 13 descripteurs calculés pour chaque capteur : nom, code, formule, sens."""
+    sens = {"rms": T("Le niveau moyen de vibration", "The average vibration level"),
+            "kurtosis": T("Les chocs : environ 3 pour un roulement sain, bien plus quand un défaut tape", "Shocks: about 3 for a healthy bearing, much more when a fault strikes"),
+            "crete": T("La hauteur du plus grand choc par rapport au niveau moyen", "The height of the biggest shock relative to the average level"),
+            "skew": T("Si le signal penche d’un côté (0 = symétrique)", "Whether the signal leans to one side (0 = symmetric)"),
+            "pkpk": T("L’écart entre le point le plus haut et le plus bas", "The gap between the highest and lowest point")}
+    lignes = "".join(f'<tr><td><b>{nom_desc(c + "_vb", True).split(" · ")[0]}</b></td><td><code>{c}</code></td><td>{FORMULES[c]}</td><td>{sens[c]}</td></tr>' for c in sens)
+    for b in range(1, 9):
+        lo, hi = bornes_bande(b)
+        lignes += (f'<tr><td><b>{nom_desc(f"bande{b}_vb").split(" · ")[0]}</b></td><td><code>bande{b}</code></td><td>{FORMULES["bande"]}</td>'
+                   f'<td>{T("Énergie des vibrations entre", "Vibration energy between")} {nombre(lo, 2)} {T("et", "and")} {nombre(hi, 1)} kHz</td></tr>')
+    with st.container(border=True, key=ncle()):
+        titre_carte(T("Les 26 descripteurs", "The 26 features"),
+                    T("13 descripteurs par capteur (suffixe VB : accéléromètre vert-bleu, V : accéléromètre vert), calculés sur le signal centré x.",
+                      "13 features per sensor (suffix VB: green-blue accelerometer, V: green accelerometer), computed on the centred signal x."))
+        html(f'<div class="bg-scroll"><table class="bg-table"><tr><th>{T("Nom", "Name")}</th><th>{T("Code", "Code")}</th><th>{T("Formule", "Formula")}</th>'
+             f'<th>{T("Ce que ça mesure", "What it measures")}</th></tr>{lignes}</table></div>')
+        st.caption(T("Bandes : spectre de Welch (fenêtres de 512 points, une valeur tous les 50 Hz), 256 fréquences de 50 Hz à 12,8 kHz découpées en 8 paquets de 32. "
+                     "Le log₁₀ ramène des énergies très différentes sur une même échelle : d’où des valeurs négatives.",
+                     "Bands: Welch spectrum (512-point windows, one value every 50 Hz), 256 frequencies from 50 Hz to 12.8 kHz split into 8 groups of 32. "
+                     "The log₁₀ brings very different energies onto one scale, hence the negative values."))
+
+
+RAPPORTS = Path(__file__).resolve().parent.parent / "assets" / "rapports"
+
+
+def _rapport():
+    """Rapports YData Profiling pré-calculés (scripts/rapports_profiling.py) : une fiche par variable."""
+    with st.container(border=True, key=ncle()):
+        a, b = st.columns([3, 2], vertical_alignment="center")
+        a.markdown(f'<p class="bg-h">{T("Rapport de profilage des données", "Data profiling report")}</p>'
+                   f'<p class="bg-sub">{T("Statistiques, distributions, corrélations et alertes pour chaque variable, générés avec YData Profiling.", "Statistics, distributions, correlations and alerts for every variable, generated with YData Profiling.")}</p>',
+                   unsafe_allow_html=True)
+        choix = b.segmented_control(T("Jeu de données", "Dataset"), ["bruts", "descripteurs"], default="descripteurs", key="exp_rapport",
+                                    format_func=lambda c: T("Signaux bruts du banc", "Raw bench signals") if c == "bruts" else T("Base des 26 descripteurs", "26-feature base"),
+                                    label_visibility="collapsed") or "descripteurs"
+        if choix == "bruts":
+            st.caption(T("Les 15 signaux d’exemple publiés (une seconde chacun, 384 000 mesures) : la base brute complète reste privée.",
+                         "The 15 published example signals (one second each, 384,000 readings): the full raw base stays private."))
+        else:
+            st.caption(T("Les 8 431 acquisitions, chacune résumée par 26 descripteurs. La formule de chaque descripteur est rappelée dans sa fiche.",
+                         "The 8,431 acquisitions, each summarised by 26 features. Each feature’s formula is given in its card."))
+        fichier = RAPPORTS / ("signaux_bruts.html" if choix == "bruts" else "descripteurs.html")
+        if fichier.exists():
+            st.iframe(fichier, height=900)
+        else:
+            st.info(T("Rapport non généré : lancer scripts/rapports_profiling.py.", "Report not generated: run scripts/rapports_profiling.py."))
