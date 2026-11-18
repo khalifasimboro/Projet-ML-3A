@@ -1,4 +1,4 @@
-"""Écran de bienvenue : le logo traverse l'écran (4 s), puis on demande le nom du visiteur.
+"""Écran de bienvenue : le logo entre et s'arrête au centre, le visiteur appuie sur « Continuer », puis on demande son nom.
 
 Le nom ne vit que dans st.session_state : il disparaît quand on quitte ou recharge l'application.
 """
@@ -11,23 +11,22 @@ CSS = """<style>
 [data-testid="stSidebar"],[data-testid="stSidebarCollapsedControl"],[data-testid="stHeader"]{display:none!important}
 .stApp,[data-testid="stAppViewContainer"]{background:radial-gradient(60% 55% at 50% 42%,rgba(242,122,31,.16),transparent 70%),__BG__!important}
 .block-container{padding-top:0!important}
-.bg-splash{position:fixed;inset:0;z-index:999990;display:grid;place-items:center;overflow:hidden;
-  background:radial-gradient(60% 55% at 50% 50%,rgba(242,122,31,.18),transparent 70%),__BG__;
-  animation:bgFin .6s ease 4s forwards}
+.st-key-bg_intro{min-height:calc(100vh - 5rem);display:flex!important;flex-direction:column;justify-content:center;align-items:center;gap:1.6rem!important;position:relative}
+.bg-splash{position:relative;display:grid;place-items:center;width:100%;padding:2rem 0}
 .bg-splash img{width:min(340px,62vw);filter:drop-shadow(0 10px 40px rgba(242,122,31,.35));
-  animation:bgDefile 4s cubic-bezier(.65,0,.35,1) forwards}
+  animation:bgEntre 1.8s cubic-bezier(.2,.8,.2,1) both}
 .bg-splash .trait{position:absolute;left:0;right:0;top:50%;height:1px;
-  background:linear-gradient(90deg,transparent,rgba(242,122,31,.7),transparent);animation:bgTrait 4s ease forwards}
-@keyframes bgDefile{0%{transform:translateX(-75vw) scale(.8);opacity:0}
-  28%{transform:translateX(0) scale(1);opacity:1}
-  72%{transform:translateX(0) scale(1.06);opacity:1}
-  100%{transform:translateX(75vw) scale(.8);opacity:0}}
-@keyframes bgTrait{0%,20%{opacity:0;transform:scaleX(0)}45%{opacity:1;transform:scaleX(1)}80%,100%{opacity:0;transform:scaleX(1.2)}}
-@keyframes bgFin{to{opacity:0;visibility:hidden}}
+  background:linear-gradient(90deg,transparent,rgba(242,122,31,.7),transparent);animation:bgTrait 1.8s ease both}
+@keyframes bgEntre{0%{transform:translateX(-75vw) scale(.8);opacity:0}100%{transform:none;opacity:1}}
+@keyframes bgTrait{0%,30%{opacity:0;transform:scaleX(0)}100%{opacity:.8;transform:scaleX(1)}}
+.st-key-bg_continuer{display:flex;justify-content:center;width:auto!important;animation:bgApparait .6s ease 1.6s both}
+.st-key-bg_continuer button{background:#F27A1F!important;border-color:#F27A1F!important;padding:.55rem 2.2rem;border-radius:999px;
+  box-shadow:0 10px 30px rgba(242,122,31,.35)}
+.st-key-bg_continuer button *{color:#fff!important;font-weight:600}
 @keyframes bgApparait{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
 .st-key-bg_accueil_nom{max-width:430px;margin:12vh auto 0;padding:2rem 2rem 1.6rem!important;border-radius:18px!important;
   background:rgba(20,22,28,.82)!important;border:1px solid __LINE__!important;box-shadow:0 30px 80px rgba(0,0,0,.5);
-  animation:bgApparait .7s ease 4.1s both}
+  animation:bgApparait .6s ease both}
 .st-key-bg_accueil_nom *{color:__FG__}
 .bg-bv{text-align:center}
 .bg-bv img{width:150px;margin-bottom:.6rem}
@@ -49,7 +48,12 @@ def ecran():
     st.html(css)
     st.sidebar.caption("Ballguard")   # la sidebar existe dès le départ (masquée ici) : elle s'ouvrira dépliée ensuite
     logo = data_uri("logo.png")
-    st.html(f'<div class="bg-splash"><div class="trait"></div><img src="{logo}" alt="Ballguard"></div>')
+    if not st.session_state.get("_intro_vue"):
+        with st.container(key="bg_intro"):
+            st.html(f'<div class="bg-splash"><div class="trait"></div><img src="{logo}" alt="Ballguard"></div>')
+            st.button(T("Continuer", "Continue"), key="bg_continuer", icon=":material/arrow_forward:",
+                      on_click=lambda: st.session_state.update(_intro_vue=True))
+        return
     with st.container(key="bg_accueil_nom"):
         st.html(f'<div class="bg-bv"><img src="{logo}" alt="Ballguard"><h1>{T("Bienvenue sur Ballguard", "Welcome to Ballguard")}</h1>'
                 f'<p>{T("Diagnostic de roulements par autoencodeurs", "Bearing diagnosis with autoencoders")}</p></div>')
