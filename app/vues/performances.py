@@ -8,7 +8,7 @@ from ui import donnees
 from vues import etude_v6
 from ui.composants import ncle
 from ui.composants import carte_chaleur, entete, html, pied, titre_carte, tracer
-from ui.i18n import T, nom_etat, nombre
+from ui.i18n import T, nom_desc, nom_etat, nombre
 from ui.theme import P
 
 NOMS = {"Isolation Forest": ("Isolation Forest", "Isolation Forest"), "ACP": ("ACP", "PCA"), "CNN-AE spectral": ("CNN-AE spectral", "Spectral CNN-AE"),
@@ -105,16 +105,16 @@ def page():
             with col.container(border=True, key=ncle()):
                 titre_carte(titre, sous)
                 top = sorted(art["permutation"][cle].items(), key=lambda kv: -kv[1])[:12]
-                fig = go.Figure(go.Bar(orientation="h", y=[k for k, _ in top], x=[v for _, v in top], marker_color=p["accent"]))
-                fig.update_yaxes(autorange="reversed", tickfont=dict(family="JetBrains Mono, monospace", size=11))
+                fig = go.Figure(go.Bar(orientation="h", y=[nom_desc(k) for k, _ in top], x=[v for _, v in top], marker_color=p["accent"]))
+                fig.update_yaxes(autorange="reversed", tickfont=dict(size=11))
                 fig.update_xaxes(title=axe)
-                tracer(fig, 400, legende=False, marges=dict(l=110, r=16, t=10, b=44))
+                tracer(fig, 400, legende=False, marges=dict(l=175, r=16, t=10, b=44))
         with st.container(border=True, key=ncle()):
             feats = donnees.modele()["features"]
             titre_carte(T("Erreur de reconstruction par descripteur et par état", "Reconstruction error per feature and state"),
                         T("Quels descripteurs trahissent chaque défaut (log10 de l’erreur moyenne, jeu de test)", "Which features give each fault away (log10 of mean error, test set)"))
-            carte_chaleur(np.log10(np.array(det["erreur_par_classe"])).round(2), feats, [nom_etat(c) for c in CLASSES], 330, texte=False, barre=True,
-                          couleurs=[[0, p["surface2"]], [0.5, p["INNER_RACE"]], [1, p["accent"]]], marges=dict(l=120, r=8, t=10, b=90))
+            carte_chaleur(np.log10(np.array(det["erreur_par_classe"])).round(2), [nom_desc(f) for f in feats], [nom_etat(c) for c in CLASSES], 400, texte=False, barre=True,
+                          couleurs=[[0, p["surface2"]], [0.5, p["INNER_RACE"]], [1, p["accent"]]], marges=dict(l=120, r=8, t=10, b=165))
     with t4:
         etude_v6.onglet(p, art)
     pied()

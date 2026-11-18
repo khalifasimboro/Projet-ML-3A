@@ -142,8 +142,8 @@ h1,h2,h3,h4{{font-family:var(--display)!important;letter-spacing:-.01em;color:va
 .bg-gauge .mk{{position:absolute;top:50%;width:18px;height:18px;border-radius:50%;background:var(--surface);border:4px solid var(--fg);transform:translate(-50%,-50%);box-shadow:0 2px 8px rgba(0,0,0,.4)}}
 .bg-gauge .mk span{{top:20px;font-weight:600;color:var(--fg)}}
 .bg-bars{{display:flex;flex-direction:column;gap:.5rem;margin-bottom:.4rem}}
-.bg-bars .b{{display:grid;line-height:1.3;min-height:1.3rem;grid-template-columns:124px minmax(0,1fr) 52px;gap:.6rem;align-items:center;font-size:.8rem}}
-.bg-bars .b span:first-child{{font-family:var(--mono);font-size:.76rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}}
+.bg-bars .b{{display:grid;line-height:1.3;min-height:1.3rem;grid-template-columns:minmax(0,200px) minmax(0,1fr) 52px;gap:.6rem;align-items:center;font-size:.8rem}}
+.bg-bars .b span:first-child{{font-family:var(--body);font-size:.8rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}}
 .bg-bars.txt .b span:first-child{{font-family:var(--body);font-size:.8rem}}
 .bg-bars .tr{{height:9px;border-radius:99px;background:var(--surface2);overflow:hidden;border:1px solid var(--line)}}
 .bg-bars .tr i{{display:block;height:100%;border-radius:99px;background:var(--accent)}}

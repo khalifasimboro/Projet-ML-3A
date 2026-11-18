@@ -2,6 +2,8 @@
 
 Elle est fixée en haut de la zone principale, sur la même ligne que le menu Streamlit (Deploy).
 """
+import html
+
 import streamlit as st
 
 from .i18n import T
@@ -9,7 +11,7 @@ from .i18n import T
 CSS = """<style>
 .st-key-bgtopbar{position:fixed;top:0;left:262px;right:0;height:3.75rem;z-index:999989;padding:0 11rem 0 2.2rem!important;
   width:auto!important;max-width:none!important;background:var(--bg);border-bottom:1px solid var(--line);
-  display:grid!important;grid-template-columns:auto minmax(0,1fr) 340px;align-items:center;gap:1.2rem}
+  display:grid!important;grid-template-columns:auto minmax(0,1fr) 340px auto;align-items:center;gap:1.2rem}
 .st-key-bgtopbar>*{margin:0!important;height:auto!important;min-height:0!important;width:auto!important;align-self:center}
 .stApp:has([data-testid="stSidebar"][data-collapsed="true"]) .st-key-bgtopbar{left:0;padding-left:6.5rem!important}
 @media (max-width:767px){.st-key-bgtopbar{left:0;padding:0 4rem 0 3.5rem!important}.bg-top{display:none}}
@@ -28,9 +30,26 @@ CSS = """<style>
 @keyframes bgDefileTexte{from{transform:translateX(0)}to{transform:translateX(-50%)}}
 @keyframes bgBrille{from{background-position:120% 0}to{background-position:-100% 0}}
 @media (prefers-reduced-motion:reduce){.bg-top .piste{animation:none}}
+.bg-op{display:flex;align-items:center;gap:.55rem;height:2.4rem;padding:0 .9rem 0 .3rem;border:1px solid var(--line);border-radius:999px;
+  background:var(--surface);white-space:nowrap;max-width:16rem}
+.bg-op .av{width:1.85rem;height:1.85rem;border-radius:50%;flex:none;display:grid;place-items:center;
+  background:linear-gradient(145deg,#F27A1F,#C4560A);box-shadow:0 2px 8px rgba(242,122,31,.35)}
+.bg-op .av svg{width:1.3rem;height:1.3rem}
+.bg-op b{font-family:var(--display);font-weight:600;font-size:.88rem;color:var(--fg);overflow:hidden;text-overflow:ellipsis}
+@media (max-width:1100px){.bg-op b{display:none}.bg-op{padding:0 .3rem}}
 .st-key-bgretour button{height:2.4rem;border-radius:10px;white-space:nowrap}
 .st-key-bgrecherche [data-baseweb="select"]>div{border-radius:10px;background:var(--surface);min-height:2.3rem}
 </style>"""
+
+
+# opérateur : casque de chantier, visage, col de bleu de travail
+OPERATEUR = ('<svg viewBox="0 0 24 24" aria-hidden="true">'
+             '<path d="M5 20.5c.6-3.3 3.4-5.2 7-5.2s6.4 1.9 7 5.2" fill="#fff" opacity=".95"/>'
+             '<path d="M10.2 15.5 12 18l1.8-2.5" fill="none" stroke="#C4560A" stroke-width="1.2" stroke-linejoin="round"/>'
+             '<circle cx="12" cy="10.6" r="3.4" fill="#fff"/>'
+             '<path d="M6.6 9.4c0-3.1 2.4-5.4 5.4-5.4s5.4 2.3 5.4 5.4Z" fill="#FFD9B8"/>'
+             '<path d="M5.6 9.4h12.8" stroke="#FFD9B8" stroke-width="1.6" stroke-linecap="round"/>'
+             '<path d="M12 4v3" stroke="#C4560A" stroke-width="1.2" stroke-linecap="round"/></svg>')
 
 
 def _retour():
@@ -47,6 +66,7 @@ def _index(pages):
         ("Les 26 descripteurs", "The 26 features", "exploration"),
         ("Effet de la vitesse", "Speed effect", "exploration"),
         ("Corrélations entre descripteurs", "Feature correlations", "exploration"),
+        ("Rapport YData Profiling des données", "YData Profiling data report", "exploration"),
         ("Déposer un fichier Excel", "Upload an Excel file", "diagnostic"),
         ("Choisir le modèle (K-means, GMM, CNN)", "Choose the model (K-means, GMM, CNN)", "diagnostic"),
         ("Contribution des descripteurs à l’alarme", "Feature contributions to the alarm", "diagnostic"),
@@ -87,4 +107,7 @@ def afficher(pages):
                          format_func=lambda i: f"{index[i][0]}  ·  {pages[index[i][1]].title}" if index[i][0] != pages[index[i][1]].title else index[i][0],
                          placeholder=T("Rechercher une page, un graphique, un modèle…", "Search a page, a chart, a model…"),
                          label_visibility="collapsed", on_change=_choisir)
+        nom = html.escape(st.session_state.get("nom", ""))
+        st.markdown(f'<div class="bg-op" title="{T("Opérateur", "Operator")} : {nom}"><span class="av">{OPERATEUR}</span><b>{nom}</b></div>',
+                    unsafe_allow_html=True)
     return st.session_state.pop("_aller", None)

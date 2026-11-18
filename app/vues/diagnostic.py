@@ -14,7 +14,7 @@ from ballguard.lecture import SignalInvalide
 from ui import donnees
 from ui.composants import ncle
 from ui.composants import barres, entete, html, jauge, note, pastille, pastille_etat, pied, score_txt, titre_carte, tracer
-from ui.i18n import T, nom_etat, nombre
+from ui.i18n import T, nom_desc, nom_etat, nombre
 from ui.theme import P
 
 
@@ -39,9 +39,9 @@ def _rapport(nom, vitesse, r):
               T("Modeles compares :", "Models compared:")]
     lignes += [f"  - {c['modele']}: {'ALARME' if c['alarme'] else 'normal'} (score/seuil x{c['score'] / c['seuil']:.2f})" for c in r["comparaison"]]
     lignes += ["", T("Descripteurs qui portent l'erreur de reconstruction :", "Features carrying the reconstruction error:")]
-    lignes += [f"  - {f}: {v:.1%}" for f, v in list(r["contributions"].items())[:8]]
+    lignes += [f"  - {nom_desc(f, True)}: {v:.1%}" for f, v in list(r["contributions"].items())[:8]]
     lignes += ["", T("Descripteurs (valeur | plage saine a cette vitesse) :", "Features (value | healthy range at this speed):")]
-    lignes += [f"  {f:<14} {v:>10.4f} | {r['plage_saine'][f][0]:.4f} - {r['plage_saine'][f][1]:.4f}" for f, v in r["descripteurs"].items()]
+    lignes += [f"  {nom_desc(f):<30} {v:>10.4f} | {r['plage_saine'][f][0]:.4f} - {r['plage_saine'][f][1]:.4f}" for f, v in r["descripteurs"].items()]
     return "\n".join(lignes)
 
 
@@ -125,7 +125,7 @@ def page():
                 st.caption(T("Le CNN lit le spectre entier : son erreur ne se décompose pas par descripteur. Voici l’explication du MLP-AE pour le même signal.",
                              "The CNN reads the whole spectrum: its error does not split by feature. Here is the MLP-AE explanation for the same signal."))
             hors = [f for f, v in r["descripteurs"].items() if not r["plage_saine"][f][0] <= v <= r["plage_saine"][f][1]]
-            barres([(f, v, f"{v:.0%}") for f, v in list(r["contributions"].items())[:7]])
+            barres([(nom_desc(f), v, f"{v:.0%}") for f, v in list(r["contributions"].items())[:7]])
             st.write("")
             st.caption(T(f"{len(hors)} descripteur(s) sur 26 hors de la plage saine à cette vitesse.", f"{len(hors)} of 26 feature(s) outside the healthy range at this speed."))
 
@@ -160,7 +160,7 @@ def page():
             st.download_button(T("Télécharger le rapport", "Download the report"), _rapport(nom, vitesse, r).encode("utf-8"),
                                f"ballguard_{nom.rsplit('.', 1)[0]}.txt", "text/plain", icon=":material/description:")
         with st.expander(T("Les 26 descripteurs calculés", "The 26 computed features")):
-            st.dataframe(pd.DataFrame([{T("descripteur", "feature"): f, T("valeur", "value"): v, T("plage saine (min)", "healthy range (min)"): r["plage_saine"][f][0],
+            st.dataframe(pd.DataFrame([{T("descripteur", "feature"): nom_desc(f, True), T("code", "code"): f, T("valeur", "value"): v, T("plage saine (min)", "healthy range (min)"): r["plage_saine"][f][0],
                                         T("plage saine (max)", "healthy range (max)"): r["plage_saine"][f][1],
                                         T("dans la plage", "in range"): r["plage_saine"][f][0] <= v <= r["plage_saine"][f][1]} for f, v in r["descripteurs"].items()]),
                          hide_index=True, use_container_width=True)
