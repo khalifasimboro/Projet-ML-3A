@@ -33,9 +33,8 @@ VAGUE = '<path d="M2 14c2.5-6 5-6 7.5 0s5 6 7.5 0 3.5-4 5-2"/>'
 
 def _css():
     return f"""<style>
-.st-key-bghero{{margin:-2.2rem -2.2rem 0;width:calc(100% + 4.4rem)!important;max-width:none!important;padding:0!important}}
-.bg-banniere{{height:clamp(150px,15vw,230px);
-  background:linear-gradient(0deg,var(--bg) 0%,rgba(0,0,0,0) 38%),url("{data_uri('hero.jpg')}") center 42%/cover no-repeat}}
+.st-key-bghero{{margin:-3.2rem -2.2rem 0;width:calc(100% + 4.4rem)!important;max-width:none!important;padding:0!important}}
+.bg-banniere{{aspect-ratio:2000/559;width:100%;background:url("{data_uri('hero.webp')}") center/100% 100% no-repeat}}
 .bg-kpis{{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1rem;align-items:stretch}}
 @media (max-width:1100px){{.bg-kpis{{grid-template-columns:repeat(2,minmax(0,1fr))}}}}
 @media (max-width:560px){{.bg-kpis{{grid-template-columns:1fr}}}}

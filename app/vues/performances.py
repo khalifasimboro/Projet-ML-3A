@@ -7,7 +7,7 @@ from ballguard.config import CLASSES, VITESSES
 from ui import donnees
 from vues import etude_v6
 from ui.composants import ncle
-from ui.composants import carte_chaleur, entete, html, pied, titre_carte, tracer
+from ui.composants import carte_chaleur, entete, html, lecture, pied, titre_carte, tracer
 from ui.i18n import T, nom_desc, nom_etat, nombre
 from ui.theme import P
 
@@ -26,6 +26,18 @@ def page():
     t1, t2, t3, t4 = st.tabs([T("Détection", "Detection"), "Clustering", T("Interprétabilité", "Interpretability"), T("Étude comparative V6", "V6 comparative study")])
 
     with t1:
+        ae = next(l for l in det["table"] if l["modele"] == "AE (descripteurs)")
+        n_sains = sum(ae["confusion"][0])
+        lecture(T(f"Question posée : sur <b>{nombre(art['meta']['n_test'], 0)} signaux jamais vus</b> pendant l’entraînement, le modèle sépare-t-il les roulements sains des roulements défectueux ? "
+                  f"L’autoencodeur retenu détecte <b>{ae['rappel']:.0%} des défauts</b> et ne se trompe que sur <b>{ae['nb_fausses_alarmes']} roulements sains sur {n_sains}</b>. "
+                  "Les modèles de référence, plus simples, servent à vérifier que ce résultat n’est pas trivial.",
+                  f"The question: on <b>{nombre(art['meta']['n_test'], 0)} signals never seen</b> during training, does the model separate healthy from faulty bearings? "
+                  f"The selected autoencoder detects <b>{ae['rappel']:.0%} of faults</b> and is wrong on only <b>{ae['nb_fausses_alarmes']} healthy bearings out of {n_sains}</b>. "
+                  "The simpler baselines check that this result is not trivial."),
+                [("AUROC", T("Capacité à classer un défaut au-dessus d’un sain, quel que soit le seuil. 1 = séparation parfaite, 0,5 = hasard.", "Ability to rank a fault above a healthy signal, whatever the threshold. 1 = perfect, 0.5 = chance.")),
+                 (T("Rappel", "Recall"), T("Part des roulements défectueux qui déclenchent l’alarme.", "Share of faulty bearings that trigger the alarm.")),
+                 (T("Précision", "Precision"), T("Part des alarmes qui correspondent vraiment à un défaut.", "Share of alarms that are real faults.")),
+                 (T("Fausses alarmes", "False alarms"), T("Roulements sains signalés à tort : chaque fausse alarme coûte un arrêt inutile.", "Healthy bearings flagged by mistake: each one costs a needless stop."))])
         g, d = st.columns([1.5, 1])
         with g.container(border=True, key=ncle()):
             titre_carte(T("Détection d’anomalie sur le jeu de test", "Anomaly detection on the test set"),
@@ -68,6 +80,16 @@ def page():
             carte_chaleur((np.array(det["taux_alarme"]) * 100).round(1), [f"{T('vitesse', 'speed')} {v}" for v in VITESSES], [nom_etat(c) for c in CLASSES], 260)
 
     with t2:
+        lecture(T("Question posée : sans connaître les étiquettes, le modèle range-t-il les signaux en groupes qui correspondent aux vrais états du roulement ? "
+                  f"Avec la solution retenue, <b>{clu['exactitude']:.1%} des signaux de test</b> sont rangés dans le bon état. "
+                  "La difficulté venait de la vitesse : sans correction, les groupes se forment par vitesse plutôt que par défaut.",
+                  "The question: without knowing the labels, does the model group signals according to the real bearing states? "
+                  f"With the selected solution, <b>{clu['exactitude']:.1%} of test signals</b> land in the right state. "
+                  "The difficulty was speed: without correction, groups form by speed rather than by fault."),
+                [("ARI", T("Accord entre les groupes trouvés et les vrais états. 1 = identiques, 0 = hasard.", "Agreement between the groups found and the real states. 1 = identical, 0 = chance.")),
+                 ("NMI", T("Information commune aux groupes et aux états, de 0 à 1.", "Information shared by groups and states, from 0 to 1.")),
+                 ("Silhouette", T("Netteté des groupes : proche de 1 si chaque groupe est compact et bien séparé des autres.", "Group sharpness: close to 1 when each group is compact and well separated.")),
+                 (T("ARI vs vitesse", "ARI vs speed"), T("Accord entre les groupes et la vitesse. Il doit rester proche de 0 : les groupes ne doivent pas refléter la vitesse.", "Agreement between groups and speed. It should stay close to 0: groups must not reflect speed."))])
         pv = clu["par_vitesse"]
         moy = lambda m, k: float(np.mean([l[k] for l in pv if l["modele"] == m]))
         strategies = [(T("Sans correction", "No correction"), clu["sans"]["baseline"], clu["sans"]["autoencodeur"]),
@@ -96,6 +118,11 @@ def page():
                          f"With the selected solution, the state is correctly identified for {clu['exactitude']:.1%} of test signals. Most of the gain comes from preprocessing; the autoencoder brings sharper groups (silhouette)."))
 
     with t3:
+        lecture(T("Question posée : sur quels descripteurs le modèle s’appuie-t-il ? On mélange au hasard un descripteur à la fois et on mesure combien la performance chute. "
+                  "Plus la chute est forte, plus le modèle dépend de ce descripteur. La carte du bas montre, pour chaque type de défaut, les descripteurs que l’autoencodeur reconstruit le plus mal.",
+                  "The question: which features does the model rely on? One feature at a time is shuffled at random and the drop in performance is measured. "
+                  "The bigger the drop, the more the model depends on that feature. The map below shows, for each fault type, the features the autoencoder reconstructs worst."),
+                [], titre=T("Comment lire cette page", "How to read this page"))
         g, d = st.columns(2)
         for col, cle, titre, sous, axe in (
                 (g, "clustering", T("Importance par permutation : diagnostic", "Permutation importance: diagnosis"),

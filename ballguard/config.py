@@ -26,4 +26,5 @@ FICHIER_DESCRIPTEURS = RACINE / "donnees" / "descripteurs.csv"
 FICHIER_SPECTRES = RACINE / "donnees" / "spectres.npz"
 FICHIER_MODELE = RACINE / "modeles" / "modele_ballguard.joblib"
 FICHIER_ARTEFACTS = RACINE / "modeles" / "artefacts.joblib"
+FICHIER_VITESSE = RACINE / "modeles" / "vitesse.joblib"      # reconnaissance de la vitesse à partir des descripteurs
 DOSSIER_EXEMPLES = RACINE / "exemples"

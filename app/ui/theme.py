@@ -27,7 +27,7 @@ def P():
 
 
 def data_uri(nom):
-    mime = "image/jpeg" if nom.endswith(".jpg") else "image/png"
+    mime = {"jpg": "image/jpeg", "webp": "image/webp"}.get(nom.rsplit(".", 1)[-1], "image/png")
     return f"data:{mime};base64," + base64.b64encode((ASSETS / nom).read_bytes()).decode()
 
 
@@ -103,6 +103,16 @@ h1,h2,h3,h4{{font-family:var(--display)!important;letter-spacing:-.01em;color:va
 [data-testid="stPageLink"] a:hover{{border-color:var(--accent)}}
 /* composants maison */
 .bg-crumb{{font-size:.72rem;color:var(--muted);letter-spacing:.04em}}
+.st-key-filariane{{gap:.35rem!important;width:auto!important}}
+.st-key-filariane>*{{width:auto!important;margin:0!important}}
+.st-key-filariane{{align-items:baseline!important}}
+.st-key-filariane [data-testid="stPageLink"] a{{padding:0!important;min-height:0;height:auto!important;background:none!important;border:none!important;box-shadow:none!important}}
+.st-key-filariane [data-testid="stPageLink"] a>div,.st-key-filariane [data-testid="stPageLink"] a span{{line-height:1.2}}
+.st-key-filariane [data-testid="stPageLink"] a p{{font-size:.72rem!important;letter-spacing:.04em;color:var(--accent)!important;font-weight:600}}
+.st-key-filariane [data-testid="stPageLink"] a:hover p{{text-decoration:underline}}
+.st-key-filariane [data-testid="stPageLink"] [data-testid="stIconMaterial"]{{display:none}}
+.st-key-filariane p,.st-key-filariane .bg-crumb{{line-height:1.2!important;margin:0!important}}
+.st-key-filariane .bg-crumb{{position:relative;top:-4px}}
 .bg-title{{font-family:var(--display);font-size:1.5rem;font-weight:600;margin:0 0 .2rem}}
 .bg-lead{{color:var(--muted);max-width:70ch;margin:0 0 .6rem}}
 .bg-intro h2{{font-family:var(--display);font-size:clamp(1.5rem,2.6vw,2rem);line-height:1.15;margin:0 0 .35rem;font-weight:600;max-width:24ch;padding:0}}
@@ -180,6 +190,15 @@ h1,h2,h3,h4{{font-family:var(--display)!important;letter-spacing:-.01em;color:va
 .bg-people{{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:.6rem}}
 .bg-people div{{border:1px solid var(--line);border-radius:10px;padding:.6rem .75rem;background:var(--surface2);font-weight:600;font-size:.82rem}}
 .bg-people span{{display:block;font-weight:400;color:var(--muted);font-size:.76rem}}
+.bg-lire{{border:1px solid var(--line);background:var(--surface);border-radius:14px;padding:1rem 1.2rem;margin:.2rem 0 .6rem;box-shadow:var(--shadow)}}
+.bg-lire .tt{{font-family:var(--display);font-weight:600;font-size:.95rem;display:flex;gap:.5rem;align-items:center;margin-bottom:.35rem}}
+.bg-lire .tt svg{{width:18px;height:18px;flex:none;color:var(--accent)}}
+.bg-lire .phrase{{font-size:.93rem;line-height:1.55;margin:0 0 .7rem}}
+.bg-lire .phrase b{{color:var(--fg)}}
+.bg-lire .defs{{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:.7rem;border-top:1px solid var(--line);padding-top:.7rem}}
+.bg-lire .defs div{{font-size:.8rem;color:var(--muted);line-height:1.45}}
+.bg-lire .defs b{{display:block;color:var(--fg);font-size:.76rem;letter-spacing:.04em;text-transform:uppercase;margin-bottom:.15rem}}
+.bg-lire .avert{{margin:-.3rem 0 .6rem;font-size:.82rem;color:var(--alarm)}}
 .bg-note{{font-size:.78rem;color:var(--muted);border:1px dashed var(--line);border-radius:10px;padding:.6rem .75rem}}
 .bg-foot{{color:var(--muted);font-size:.74rem;border-top:1px solid var(--line);padding-top:.8rem;margin-top:1.4rem;display:flex;justify-content:space-between;gap:.6rem;flex-wrap:wrap}}
 </style>"""
