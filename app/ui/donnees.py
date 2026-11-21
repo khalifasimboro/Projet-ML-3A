@@ -20,6 +20,12 @@ def modele():
 
 
 @st.cache_resource(show_spinner=False)
+def modele_vitesse():
+    """Forêt qui reconnaît la vitesse de rotation (None si le fichier n'a pas été entraîné)."""
+    return joblib.load(config.FICHIER_VITESSE) if config.FICHIER_VITESSE.exists() else None
+
+
+@st.cache_resource(show_spinner=False)
 def artefacts():
     return joblib.load(config.FICHIER_ARTEFACTS)
 

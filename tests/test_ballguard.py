@@ -143,3 +143,17 @@ def test_les_trois_modeles_identifient_l_etat(variante):
         assert res["etat_estime"] == l.classe, (variante, l.fichier)
         assert sum(res["proximite"].values()) == pytest.approx(1.0)
         assert [c["modele"] for c in res["comparaison"]][-1] == "CNN-AE spectral"
+
+
+@besoin_exemples
+@pytest.mark.skipif(not config.FICHIER_VITESSE.exists(), reason="modèle de vitesse absent (scripts/entrainer_vitesse.py)")
+def test_vitesse_reconnue_sur_les_exemples():
+    """La vitesse proposée à l'import est la bonne pour chaque signal d'exemple."""
+    from ballguard import vitesse
+    from ballguard.descripteurs import extraire
+    m = vitesse.charger()
+    index = pd.read_csv(config.DOSSIER_EXEMPLES / "index.csv")
+    for _, l in index.iterrows():
+        v, confiance = vitesse.estimer(m, extraire(config.DOSSIER_EXEMPLES / l.fichier)[0])
+        assert v == l.vitesse, l.fichier
+        assert 0 < confiance <= 1

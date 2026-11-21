@@ -13,8 +13,11 @@ def html(code):
 
 
 def entete(groupe, titre, accroche=None):
-    html(f'<div class="bg-crumb">Ballguard / {groupe}</div><div class="bg-title">{titre}</div>'
-         + (f'<p class="bg-lead">{accroche}</p>' if accroche else ""))
+    """Fil d'Ariane (« Ballguard » ramène au tableau de bord), titre et phrase d'accroche de la page."""
+    with st.container(key="filariane", horizontal=True, gap=None, vertical_alignment="center"):
+        st.page_link(st.session_state["pages"]["accueil"], label="Ballguard", help=T("Retour au tableau de bord", "Back to the dashboard"))
+        html(f'<div class="bg-crumb">/ {groupe}</div>')
+    html(f'<div class="bg-title">{titre}</div>' + (f'<p class="bg-lead">{accroche}</p>' if accroche else ""))
 
 
 def titre_carte(titre, sous_titre=None):
@@ -57,6 +60,20 @@ def jauge(score, seuil):
     pos = lambda s: max(2, min(98, (math.log10(max(s, 1e-6)) + 3) / 8 * 100))
     html(f'<div class="bg-gauge"><div class="th" style="left:{pos(seuil):.1f}%"><span>{T("seuil", "threshold")} '
          f'{score_txt(seuil)}</span></div><div class="mk" style="left:{pos(score):.1f}%"><span>{score_txt(score)}</span></div></div>')
+
+
+ICONE_INFO = ('<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">'
+              '<circle cx="12" cy="12" r="9.5"/><path d="M12 11v6M12 7.5v.5"/></svg>')
+
+
+def lecture(phrase, definitions, titre=None, avertissement=""):
+    """Encadré « Comment lire … » : une phrase en clair, puis la définition de chaque chiffre affiché.
+
+    definitions : liste de (terme, explication).
+    """
+    defs = "".join(f"<div><b>{t}</b>{d}</div>" for t, d in definitions)
+    html(f'<div class="bg-lire"><div class="tt">{ICONE_INFO}{titre or T("Comment lire ces résultats", "How to read these results")}</div>'
+         f'<p class="phrase">{phrase}</p>{avertissement}' + (f'<div class="defs">{defs}</div>' if defs else "") + "</div>")
 
 
 def note(texte):

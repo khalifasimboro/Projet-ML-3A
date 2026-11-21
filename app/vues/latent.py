@@ -7,7 +7,7 @@ from sklearn.metrics import adjusted_rand_score, normalized_mutual_info_score, s
 from ballguard.config import CLASSES, VITESSES
 from ui import donnees
 from ui.composants import ncle
-from ui.composants import carte_chaleur, entete, html, kpi, pastille_etat, pied, titre_carte, tracer
+from ui.composants import carte_chaleur, entete, html, kpi, lecture, pastille_etat, pied, titre_carte, tracer
 from ui.i18n import T, nom_etat, nombre
 from ui.theme import P, SERIE
 
@@ -29,6 +29,17 @@ def page():
     entete(T("Modèles", "Models"), T("Espace latent et clustering", "Latent space & clustering"),
            T("L’autoencodeur résume chaque signal en 6 nombres. Cette page montre comment les signaux s’y organisent, et pourquoi la vitesse devait être corrigée.",
              "The autoencoder summarises each signal in 6 numbers. This page shows how signals arrange themselves there, and why speed had to be corrected."))
+
+    lecture(T("L’encodeur résume chaque signal en 6 nombres : c’est l’espace latent. Pour l’afficher, la projection t-SNE le ramène en 2 ou 3 dimensions. "
+              "Chaque point est un signal de test. Si les couleurs (vrais états) forment des îlots séparés, le modèle distingue les défauts <b>sans avoir vu les étiquettes</b>. "
+              "Changez la représentation pour voir l’effet de la correction de vitesse.",
+              "The encoder summarises each signal in 6 numbers: the latent space. To display it, the t-SNE projection brings it down to 2 or 3 dimensions. "
+              "Each point is a test signal. If the colours (real states) form separate islands, the model tells faults apart <b>without seeing the labels</b>. "
+              "Switch the representation to see the effect of the speed correction."),
+            [("ARI", T("Accord entre clusters et vrais états : 1 = identiques, 0 = hasard.", "Agreement between clusters and real states: 1 = identical, 0 = chance.")),
+             ("Silhouette", T("Netteté des groupes, de −1 à 1.", "Group sharpness, from −1 to 1.")),
+             (T("ARI vs vitesse", "ARI vs speed"), T("Doit rester proche de 0 : sinon, les groupes suivent la vitesse et non le défaut.", "Should stay close to 0, otherwise groups follow speed instead of the fault.")),
+             (T("k", "k"), T("Nombre de groupes demandé à l’algorithme. Il y a 5 états réels : k = 5 est le bon choix.", "Number of groups asked of the algorithm. There are 5 real states: k = 5 is the right choice."))])
 
     with st.container(border=True, key=ncle()):
         a, b = st.columns([3, 1.3])
