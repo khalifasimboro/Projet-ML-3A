@@ -239,7 +239,17 @@ L'application est déployée sur **Streamlit Community Cloud** : [ballguard.stre
 | Fichier principal | `app/main.py` |
 | Version de Python | 3.11 (paramètres avancés) |
 
-Chaque push sur la branche déployée met l'application à jour automatiquement.
+Chaque push sur `main` met l'application en ligne à jour automatiquement, en une à deux minutes.
+
+**Organisation des branches**
+
+| Branche | Rôle |
+|---|---|
+| `main` | Version de référence, déployée sur [ballguard.streamlit.app](https://ballguard.streamlit.app) |
+| `Rydouane` | Développement de l'application ; fusionnée dans `main` une fois les changements vérifiés |
+| `feature/gt204-gt205-membre-b` | Étude comparative des autoencodeurs (résultats repris dans `donnees/etude_v6/`) |
+
+Avant chaque fusion dans `main` : lancer `pytest` (18 tests) et vérifier l'application en local avec `streamlit run app/main.py`.
 
 ## Structure du dépôt
 
