@@ -97,14 +97,20 @@ Le premier script lit chaque fichier, fixe le découpage train / validation / te
 
 ## Méthode
 
-L'application propose trois modèles de diagnostic : MLP-AE + K-means (modèle retenu, explicable par descripteur), MLP-AE + GMM et CNN-AE spectral + K-means. Les deux derniers viennent de l'étude comparative V6 du groupe (branche `feature/gt204-gt205-membre-b`) ; ils sont réentraînés par `scripts/entrainer.py`. Les tableaux de cette étude sont dans `donnees/etude_v6/` et affichés dans la page Performances.
+**Modèle retenu** : le meilleur de chaque étape sur le jeu de test.
+- Détection (sain ou défaut) : **autoencodeur sur le spectre**, aucune fausse alarme et aucun défaut manqué.
+- Type de défaut : **CNN-AE spectral + K-means**, ARI 1,000 et 100 % d'états corrects.
+
+Deux variantes sur les 26 descripteurs restent proposées dans le Diagnostic : MLP-AE + K-means et MLP-AE + GMM. Elles sont un peu moins performantes, mais ce sont les seules dont l'erreur s'explique descripteur par descripteur. Le CNN-AE spectral et le GMM viennent de l'étude comparative du groupe (branche `feature/gt204-gt205-membre-b`) ; ils sont réentraînés par `scripts/entrainer.py`. Les tableaux de cette étude sont dans `donnees/etude_v6/` et affichés dans l'onglet Variantes de la page Performances.
+
+Le modèle retenu est désigné à un seul endroit, `ballguard/config.py` (`RETENU_DETECTION`, `RETENU_CLUSTERING`). Remarque de méthode : les modèles sont choisis sur leurs scores de test ; les écarts entre les meilleurs sont faibles (0 contre 3 fausses alarmes, ARI 1,000 contre 0,998).
 
 | Tâche | Modèle de référence | Modèle avancé |
 |---|---|---|
 | Détection d'anomalie | Isolation Forest, ACP (erreur de reconstruction linéaire) | Autoencodeur sur les descripteurs, autoencodeur sur le spectre |
 | Clustering | k-means sur les descripteurs | Autoencodeur + k-means sur l'espace latent |
 
-La vitesse de rotation est un facteur de confusion : sans correction, le clustering regroupe les signaux par vitesse. La solution retenue passe 8 descripteurs au logarithme puis standardise séparément chaque vitesse.
+La vitesse de rotation est un facteur de confusion : sans correction, le clustering regroupe les signaux par vitesse. La correction standardise séparément chaque vitesse (le spectre pour le modèle retenu ; les descripteurs, après passage de 8 d'entre eux au logarithme, pour les variantes).
 
 **Interprétabilité** : décomposition de l'erreur de reconstruction par descripteur, importance par permutation (détection et diagnostic), analyse des fausses alarmes.
 

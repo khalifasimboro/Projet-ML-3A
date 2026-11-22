@@ -10,7 +10,7 @@ from sklearn.preprocessing import StandardScaler
 
 from ballguard import config
 from ballguard.descripteurs import FEATURES, extraire_depuis_signal
-from ballguard.diagnostic import analyser
+from ballguard.diagnostic import analyser_retenu
 from ballguard.lecture import lire_signal
 
 
@@ -32,10 +32,11 @@ def artefacts():
 
 @st.cache_data(show_spinner=False)
 def base():
-    """Base de descripteurs complétée par le score d'anomalie et l'état estimé de chaque signal."""
+    """Base de descripteurs complétée par le score d'anomalie et l'état estimé de chaque signal (modèle retenu)."""
     bd = pd.read_csv(config.FICHIER_DESCRIPTEURS)
-    res = analyser(modele(), bd[FEATURES], bd.vitesse)
-    return pd.concat([bd, res], axis=1)
+    spectres = np.load(config.FICHIER_SPECTRES)["spectres"]
+    res = analyser_retenu(modele(), spectres, bd.vitesse)
+    return pd.concat([bd, res.set_index(bd.index)], axis=1)
 
 
 @st.cache_resource(show_spinner=False)

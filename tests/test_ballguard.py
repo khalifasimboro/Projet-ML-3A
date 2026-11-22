@@ -131,7 +131,7 @@ def test_vitesse_inconnue_refusee():
 
 @besoin_modele
 @besoin_exemples
-@pytest.mark.parametrize("variante", ["km", "gmm", "cnn"])
+@pytest.mark.parametrize("variante", ["spec", "km", "gmm", "cnn"])
 def test_les_trois_modeles_identifient_l_etat(variante):
     """Les variantes de l'étude V6 (MLP-AE + GMM, CNN-AE spectral) donnent le bon état sur les exemples."""
     modele = charger_modele()
@@ -157,3 +157,18 @@ def test_vitesse_reconnue_sur_les_exemples():
         v, confiance = vitesse.estimer(m, extraire(config.DOSSIER_EXEMPLES / l.fichier)[0])
         assert v == l.vitesse, l.fichier
         assert 0 < confiance <= 1
+
+
+@besoin_modele
+def test_modele_retenu_sur_le_jeu_de_test():
+    """Modèle retenu (AE spectral + CNN-AE spectral + K-means) : aucune fausse alarme, aucun défaut manqué, états corrects."""
+    import numpy as np
+    from ballguard.diagnostic import analyser_retenu
+    bd = pd.read_csv(config.FICHIER_DESCRIPTEURS)
+    spectres = np.load(config.FICHIER_SPECTRES)["spectres"]
+    test = (bd.split == "test").to_numpy()
+    res = analyser_retenu(charger_modele(), spectres[test], bd.vitesse[test])
+    sain = (bd.classe[test] == "SAFE").to_numpy()
+    assert not res.alarme.to_numpy()[sain].any()
+    assert res.alarme.to_numpy()[~sain].all()
+    assert (res.etat_estime.to_numpy() == bd.classe[test].to_numpy()).mean() >= 0.999

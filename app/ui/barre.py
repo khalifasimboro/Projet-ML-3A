@@ -68,7 +68,7 @@ def _index(pages):
         ("Corrélations entre descripteurs", "Feature correlations", "exploration"),
         ("Rapport YData Profiling des données", "YData Profiling data report", "exploration"),
         ("Déposer un fichier Excel", "Upload an Excel file", "diagnostic"),
-        ("Choisir le modèle (K-means, GMM, CNN)", "Choose the model (K-means, GMM, CNN)", "diagnostic"),
+        ("Choisir le modèle (retenu ou variantes)", "Choose the model (selected or variants)", "diagnostic"),
         ("Contribution des descripteurs à l’alarme", "Feature contributions to the alarm", "diagnostic"),
         ("Simulation en direct", "Live simulation", "surveillance"),
         ("Score d’anomalie en temps réel", "Real-time anomaly score", "surveillance"),
@@ -77,7 +77,8 @@ def _index(pages):
         ("Courbes ROC", "ROC curves", "performances"),
         ("Matrice de confusion", "Confusion matrix", "performances"),
         ("Importance par permutation", "Permutation importance", "performances"),
-        ("Étude comparative V6", "V6 comparative study", "performances"),
+        ("Variantes et étude comparative", "Variants and comparative study", "performances"),
+        ("Modèle retenu", "Selected model", "performances"),
         ("Découpage train / validation / test", "Train / validation / test split", "methodologie"),
         ("Limites connues", "Known limits", "methodologie"),
         ("Équipe", "Team", "methodologie"))]

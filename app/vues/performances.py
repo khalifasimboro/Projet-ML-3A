@@ -3,7 +3,7 @@ import numpy as np
 import plotly.graph_objects as go
 import streamlit as st
 
-from ballguard.config import CLASSES, VITESSES
+from ballguard.config import CLASSES, RETENU_CLUSTERING, RETENU_DETECTION, VITESSES
 from ui import donnees
 from vues import etude_v6
 from ui.composants import ncle
@@ -13,7 +13,7 @@ from ui.theme import P
 
 NOMS = {"Isolation Forest": ("Isolation Forest", "Isolation Forest"), "ACP": ("ACP", "PCA"), "CNN-AE spectral": ("CNN-AE spectral", "Spectral CNN-AE"),
         "AE (descripteurs)": ("Autoencodeur (descripteurs)", "Autoencoder (features)"),
-        "AE (spectre)": ("Autoencodeur (spectre)", "Autoencoder (spectrum)")}
+        "AE (spectre)": ("Autoencodeur spectral", "Spectral autoencoder")}
 
 
 def page():
@@ -23,16 +23,19 @@ def page():
     entete(T("Modèles", "Models"), T("Performances des modèles", "Model performance"),
            T("Les autoencodeurs sont comparés à des modèles de référence simples, sur des signaux jamais vus pendant l’entraînement.",
              "Autoencoders are compared with simple baselines, on signals never seen during training."))
-    t1, t2, t3, t4 = st.tabs([T("Détection", "Detection"), "Clustering", T("Interprétabilité", "Interpretability"), T("Étude comparative V6", "V6 comparative study")])
+    t1, t2, t3, t4 = st.tabs([T("Détection", "Detection"), "Clustering", T("Interprétabilité", "Interpretability"), T("Variantes", "Variants")])
+    ret = next(l for l in art["variantes"] if l["variante"] == RETENU_CLUSTERING)
 
     with t1:
-        ae = next(l for l in det["table"] if l["modele"] == "AE (descripteurs)")
+        ae = next(l for l in det["table"] if l["modele"] == RETENU_DETECTION)
         n_sains = sum(ae["confusion"][0])
         lecture(T(f"Question posée : sur <b>{nombre(art['meta']['n_test'], 0)} signaux jamais vus</b> pendant l’entraînement, le modèle sépare-t-il les roulements sains des roulements défectueux ? "
-                  f"L’autoencodeur retenu détecte <b>{ae['rappel']:.0%} des défauts</b> et ne se trompe que sur <b>{ae['nb_fausses_alarmes']} roulements sains sur {n_sains}</b>. "
+                  f"Tous les modèles détectent <b>{ae['rappel'] * 100:.0f} % des défauts</b> ; ils se distinguent par les fausses alarmes. Le modèle retenu, "
+                  f"l’<b>autoencodeur spectral</b>, n’en fait <b>aucune</b> sur les {n_sains} roulements sains du test : c’est le meilleur, il est donc retenu. "
                   "Les modèles de référence, plus simples, servent à vérifier que ce résultat n’est pas trivial.",
                   f"The question: on <b>{nombre(art['meta']['n_test'], 0)} signals never seen</b> during training, does the model separate healthy from faulty bearings? "
-                  f"The selected autoencoder detects <b>{ae['rappel']:.0%} of faults</b> and is wrong on only <b>{ae['nb_fausses_alarmes']} healthy bearings out of {n_sains}</b>. "
+                  f"All models detect <b>{ae['rappel']:.0%} of faults</b>; they differ in false alarms. The selected model, the <b>spectral autoencoder</b>, "
+                  f"makes <b>none</b> on the {n_sains} healthy bearings of the test set: it is the best, so it is selected. "
                   "The simpler baselines check that this result is not trivial."),
                 [("AUROC", T("Capacité à classer un défaut au-dessus d’un sain, quel que soit le seuil. 1 = séparation parfaite, 0,5 = hasard.", "Ability to rank a fault above a healthy signal, whatever the threshold. 1 = perfect, 0.5 = chance.")),
                  (T("Rappel", "Recall"), T("Part des roulements défectueux qui déclenchent l’alarme.", "Share of faulty bearings that trigger the alarm.")),
@@ -43,18 +46,22 @@ def page():
             titre_carte(T("Détection d’anomalie sur le jeu de test", "Anomaly detection on the test set"),
                         T(f"{art['meta']['n_test']} signaux, seuil fixé sur les signaux sains de validation", f"{art['meta']['n_test']} signals, threshold set on healthy validation signals"))
             roles = {"Isolation Forest": T("Référence", "Baseline"), "ACP": T("Référence", "Baseline"),
-                     "AE (descripteurs)": T("Modèle retenu", "Selected model"), "AE (spectre)": T("Variante", "Variant"), "CNN-AE spectral": T("Étude V6", "V6 study")}
+                     "AE (descripteurs)": T("Variante", "Variant"), "AE (spectre)": T("Variante", "Variant"), "CNN-AE spectral": T("Variante", "Variant"),
+                     RETENU_DETECTION: T("Modèle retenu", "Selected model")}
+            table = sorted(det["table"], key=lambda l: l["modele"] != RETENU_DETECTION)      # le modèle retenu en premier
             lignes = "".join(
-                f'<tr class="{"hl" if l["modele"] == "AE (descripteurs)" else ""}"><td>{T(*NOMS[l["modele"]])}</td><td>{roles[l["modele"]]}</td>'
+                f'<tr class="{"hl" if l["modele"] == RETENU_DETECTION else ""}"><td>{T(*NOMS[l["modele"]])}</td><td>{roles[l["modele"]]}</td>'
                 f'<td class="n">{nombre(l["AUROC"], 3)}</td><td class="n">{nombre(l["rappel"], 3)}</td><td class="n">{nombre(l["precision"], 3)}</td>'
-                f'<td class="n">{l["nb_fausses_alarmes"]} ({nombre(l["fausses_alarmes"] * 100, 1)} %)</td></tr>' for l in det["table"])
+                f'<td class="n">{l["nb_fausses_alarmes"]} ({nombre(l["fausses_alarmes"] * 100, 1)} %)</td></tr>' for l in table)
             html(f'<div class="bg-scroll"><table class="bg-table"><tr><th>{T("Modèle", "Model")}</th><th>{T("Rôle", "Role")}</th><th class="n">AUROC</th>'
                  f'<th class="n">{T("Rappel", "Recall")}</th><th class="n">{T("Précision", "Precision")}</th><th class="n">{T("Fausses alarmes", "False alarms")}</th></tr>{lignes}</table></div>')
-            st.caption(T("Tous les modèles séparent presque parfaitement sain et défaut sur ces données. L’autoencodeur est retenu pour son erreur interprétable et son espace latent, utile au diagnostic.",
-                         "All models separate healthy and faulty almost perfectly on this data. The autoencoder is selected for its interpretable error and its latent space, used for diagnosis."))
+            st.caption(T("L’autoencodeur spectral est retenu car il fait le moins de fausses alarmes (aucune). L’autoencodeur sur les 26 descripteurs reste proposé "
+                         "en variante : c’est le seul dont l’erreur se décompose descripteur par descripteur (onglet Interprétabilité).",
+                         "The spectral autoencoder is selected because it makes the fewest false alarms (none). The autoencoder on the 26 features remains "
+                         "available as a variant: it is the only one whose error splits feature by feature (Interpretability tab)."))
         with d.container(border=True, key=ncle()):
-            titre_carte(T("Matrice de confusion de l’autoencodeur", "Autoencoder confusion matrix"))
-            conf = next(l for l in det["table"] if l["modele"] == "AE (descripteurs)")["confusion"]
+            titre_carte(T("Matrice de confusion du modèle retenu", "Selected model confusion matrix"), T("Autoencodeur spectral, jeu de test", "Spectral autoencoder, test set"))
+            conf = ae["confusion"]
             carte_chaleur(conf, [T("prédit : normal", "predicted: normal"), T("prédit : alarme", "predicted: alarm")],
                           [T("réel : sain", "actual: healthy"), T("réel : défaut", "actual: fault")], 270, marges=dict(l=100, r=10, t=10, b=40))
         g, d = st.columns(2)
@@ -67,25 +74,27 @@ def page():
                               yaxis=dict(title=T("taux de détection", "detection rate"), range=[0.95, 1.003]))
             tracer(fig, 340, marges=dict(l=56, r=10, t=10, b=80))
         with d.container(border=True, key=ncle()):
-            titre_carte(T("Scores par état", "Scores per state"), T("Erreur de reconstruction (échelle log) et seuil", "Reconstruction error (log scale) and threshold"))
+            titre_carte(T("Scores par état", "Scores per state"), T("Modèle retenu : erreur de reconstruction (échelle log) et seuil", "Selected model: reconstruction error (log scale) and threshold"))
             fig = go.Figure()
             for cl in CLASSES:
-                fig.add_box(y=det["score_ae"][test & (bd.classe == cl).to_numpy()], name=nom_etat(cl), marker=dict(color=p[cl], size=3), line=dict(width=1.4))
-            fig.add_hline(y=det["seuils"]["AE (descripteurs)"], line=dict(color=p["fg"], dash="dash", width=1.2))
+                fig.add_box(y=det["score_spec"][test & (bd.classe == cl).to_numpy()], name=nom_etat(cl), marker=dict(color=p[cl], size=3), line=dict(width=1.4))
+            fig.add_hline(y=det["seuils"][RETENU_DETECTION], line=dict(color=p["fg"], dash="dash", width=1.2))
             fig.update_layout(yaxis=dict(type="log", title="score"))
             tracer(fig, 340, legende=False)
         with st.container(border=True, key=ncle()):
-            titre_carte(T("Taux d’alarme par état et par vitesse", "Alarm rate per state and speed"),
+            titre_carte(T("Taux d’alarme par état et par vitesse (modèle retenu)", "Alarm rate per state and speed (selected model)"),
                         T("Pour « Sain », c’est le taux de fausses alarmes ; pour les défauts, le taux de détection", "For “Healthy” it is the false-alarm rate; for faults, the detection rate"))
-            carte_chaleur((np.array(det["taux_alarme"]) * 100).round(1), [f"{T('vitesse', 'speed')} {v}" for v in VITESSES], [nom_etat(c) for c in CLASSES], 260)
+            carte_chaleur((np.array(det["taux_alarme_spec"]) * 100).round(1), [f"{T('vitesse', 'speed')} {v}" for v in VITESSES], [nom_etat(c) for c in CLASSES], 260)
 
     with t2:
         lecture(T("Question posée : sans connaître les étiquettes, le modèle range-t-il les signaux en groupes qui correspondent aux vrais états du roulement ? "
-                  f"Avec la solution retenue, <b>{clu['exactitude']:.1%} des signaux de test</b> sont rangés dans le bon état. "
-                  "La difficulté venait de la vitesse : sans correction, les groupes se forment par vitesse plutôt que par défaut.",
+                  f"Le modèle retenu, le <b>CNN-AE spectral + K-means</b>, range <b>{ret['exactitude'] * 100:.0f} % des signaux de test</b> dans le bon état (ARI {nombre(ret['ARI'], 3)}) : "
+                  "c’est le meilleur des modèles comparés (onglet Variantes). La difficulté venait de la vitesse : sans correction, les groupes se forment par vitesse "
+                  "plutôt que par défaut. Les graphiques ci-dessous le montrent sur l’autoencodeur des 26 descripteurs.",
                   "The question: without knowing the labels, does the model group signals according to the real bearing states? "
-                  f"With the selected solution, <b>{clu['exactitude']:.1%} of test signals</b> land in the right state. "
-                  "The difficulty was speed: without correction, groups form by speed rather than by fault."),
+                  f"The selected model, the <b>spectral CNN-AE + K-means</b>, puts <b>{ret['exactitude']:.0%} of test signals</b> in the right state (ARI {nombre(ret['ARI'], 3)}): "
+                  "it is the best of the compared models (Variants tab). The difficulty was speed: without correction, groups form by speed rather than by fault. "
+                  "The charts below show it on the autoencoder of the 26 features."),
                 [("ARI", T("Accord entre les groupes trouvés et les vrais états. 1 = identiques, 0 = hasard.", "Agreement between the groups found and the real states. 1 = identical, 0 = chance.")),
                  ("NMI", T("Information commune aux groupes et aux états, de 0 à 1.", "Information shared by groups and states, from 0 to 1.")),
                  ("Silhouette", T("Netteté des groupes : proche de 1 si chaque groupe est compact et bien séparé des autres.", "Group sharpness: close to 1 when each group is compact and well separated.")),
@@ -97,7 +106,7 @@ def page():
                        {k: moy("autoencodeur", k) for k in ("ARI", "NMI", "silhouette")}),
                       (T("Log + standardisation par vitesse", "Log + per-speed scaling"), clu["corrige"]["baseline"], clu["corrige"]["autoencodeur"])]
         with st.container(border=True, key=ncle()):
-            titre_carte(T("Trois stratégies de clustering", "Three clustering strategies"), T("k-means à 5 groupes, évalué sur le jeu de test", "k-means with 5 groups, evaluated on the test set"))
+            titre_carte(T("Trois façons de traiter la vitesse", "Three ways to handle speed"), T("Autoencodeur des 26 descripteurs + k-means à 5 groupes, jeu de test", "26-feature autoencoder + k-means with 5 groups, test set"))
             x = [s[0] for s in strategies]
             fig = go.Figure()
             for nom, idx, cle, col, op in (("k-means · ARI", 1, "ARI", p["muted"], 1), (T("Autoencodeur · ARI", "Autoencoder · ARI"), 2, "ARI", p["accent"], 1),
@@ -114,14 +123,18 @@ def page():
                 for i, s in enumerate(strategies) for j, r in enumerate(s[1:]))
             html(f'<div class="bg-scroll"><table class="bg-table"><tr><th>{T("Stratégie", "Strategy")}</th><th>{T("Modèle", "Model")}</th><th class="n">ARI</th><th class="n">NMI</th>'
                  f'<th class="n">Silhouette</th><th class="n">ARI {T("vs vitesse", "vs speed")}</th></tr>{lignes}</table></div>')
-            st.caption(T(f"Avec la solution retenue, l’état est correctement identifié pour {clu['exactitude']:.1%} des signaux de test. L’essentiel du gain vient du prétraitement ; l’autoencodeur apporte des groupes plus nets (silhouette).",
-                         f"With the selected solution, the state is correctly identified for {clu['exactitude']:.1%} of test signals. Most of the gain comes from preprocessing; the autoencoder brings sharper groups (silhouette)."))
+            st.caption(T(f"Avec la correction de vitesse, l’autoencodeur des descripteurs identifie l’état de {clu['exactitude']:.1%} des signaux de test. "
+                         f"Le modèle retenu (CNN-AE spectral + K-means), corrigé de la même façon sur le spectre, atteint {ret['exactitude'] * 100:.0f} %.",
+                         f"With speed correction, the feature autoencoder identifies the state of {clu['exactitude']:.1%} of test signals. "
+                         f"The selected model (spectral CNN-AE + K-means), corrected the same way on the spectrum, reaches {ret['exactitude']:.0%}."))
 
     with t3:
         lecture(T("Question posée : sur quels descripteurs le modèle s’appuie-t-il ? On mélange au hasard un descripteur à la fois et on mesure combien la performance chute. "
-                  "Plus la chute est forte, plus le modèle dépend de ce descripteur. La carte du bas montre, pour chaque type de défaut, les descripteurs que l’autoencodeur reconstruit le plus mal.",
+                  "Plus la chute est forte, plus le modèle dépend de ce descripteur. La carte du bas montre, pour chaque type de défaut, les descripteurs que l’autoencodeur reconstruit le plus mal. "
+                  "Ces analyses portent sur l’autoencodeur des 26 descripteurs : le modèle retenu lit le spectre entier et ne se décompose pas par descripteur.",
                   "The question: which features does the model rely on? One feature at a time is shuffled at random and the drop in performance is measured. "
-                  "The bigger the drop, the more the model depends on that feature. The map below shows, for each fault type, the features the autoencoder reconstructs worst."),
+                  "The bigger the drop, the more the model depends on that feature. The map below shows, for each fault type, the features the autoencoder reconstructs worst. "
+                  "These analyses use the 26-feature autoencoder: the selected model reads the whole spectrum and does not split by feature."),
                 [], titre=T("Comment lire cette page", "How to read this page"))
         g, d = st.columns(2)
         for col, cle, titre, sous, axe in (

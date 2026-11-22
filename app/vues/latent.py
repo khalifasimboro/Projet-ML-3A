@@ -43,9 +43,9 @@ def page():
 
     with st.container(border=True, key=ncle()):
         a, b = st.columns([3, 1.3])
-        libelles = {"sans": T("MLP-AE sans correction", "MLP-AE, no correction"), "corr": T("MLP-AE corrigé (retenu)", "MLP-AE corrected (selected)"),
-                    "cnn": T("CNN-AE spectral corrigé", "Spectral CNN-AE corrected")}
-        rep = a.segmented_control(T("Représentation", "Representation"), list(libelles), format_func=libelles.get, default="corr", key="lat_rep") or "corr"
+        libelles = {"cnn": T("CNN-AE spectral corrigé (retenu)", "Spectral CNN-AE corrected (selected)"),
+                    "corr": T("MLP-AE corrigé", "MLP-AE corrected"), "sans": T("MLP-AE sans correction", "MLP-AE, no correction")}
+        rep = a.segmented_control(T("Représentation", "Representation"), list(libelles), format_func=libelles.get, default="cnn", key="lat_rep") or "cnn"
         algo = b.segmented_control(T("Algorithme", "Algorithm"), ["km", "gmm"], format_func={"km": "K-means", "gmm": "GMM"}.get, default="km", key="lat_algo") or "km"
         b_, c, d = st.columns([1, 2, 2])
         dim = b_.segmented_control("Projection", ["2D", "3D"], default="2D", key="lat_dim") or "2D"

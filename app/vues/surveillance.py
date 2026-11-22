@@ -76,7 +76,7 @@ def page():
         s.sv_cle, s.sv_i, s.sv_run = (defaut, vitesse), 0, False
 
     seq = _sequence(defaut, vitesse)
-    seuil = donnees.modele()["detection"]["seuil"]
+    seuil = donnees.modele()["detection_spectre"]["seuil"]          # modèle retenu : autoencodeur spectral
     ref = donnees.modele()["reference"][int(vitesse)]
     feats = donnees.modele()["features"]
 

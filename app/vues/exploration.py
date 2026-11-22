@@ -169,6 +169,29 @@ def _glossaire():
 
 RAPPORTS = Path(__file__).resolve().parent.parent / "assets" / "rapports"
 
+# Dans le cadre qui affiche le rapport, une ancre « #overview » serait résolue par rapport à l'adresse de
+# l'application, qui se rechargerait alors dans le cadre. Ce script fait défiler jusqu'à la section visée ;
+# les onglets, menus et boutons propres au rapport (attribut data-bs-toggle) gardent leur comportement.
+ANCRES = """<style>[id]{scroll-margin-top:80px}</style>
+<script>
+document.addEventListener("click", function (e) {
+  var a = e.target.closest("a[href^='#']");
+  if (!a || a.hasAttribute("data-bs-toggle") || a.hasAttribute("data-toggle")) return;
+  e.preventDefault();
+  var id = decodeURIComponent(a.getAttribute("href").slice(1));
+  var cible = id && id !== "top" ? (document.getElementById(id) || document.getElementsByName(id)[0]) : null;
+  if (cible) cible.scrollIntoView({behavior: "smooth", block: "start"});
+  else window.scrollTo({top: 0, behavior: "smooth"});
+}, true);
+</script>"""
+
+
+@st.cache_data(show_spinner=False, max_entries=2)
+def _rapport_html(chemin):
+    contenu = Path(chemin).read_text(encoding="utf-8")
+    i = contenu.lower().rfind("</body>")
+    return contenu[:i] + ANCRES + contenu[i:] if i >= 0 else contenu + ANCRES
+
 
 def _rapport():
     """Rapports YData Profiling pré-calculés (scripts/rapports_profiling.py) : une fiche par variable."""
@@ -188,6 +211,6 @@ def _rapport():
                          "The 8,431 acquisitions, each summarised by 26 features. Each feature’s formula is given in its card."))
         fichier = RAPPORTS / ("signaux_bruts.html" if choix == "bruts" else "descripteurs.html")
         if fichier.exists():
-            st.iframe(fichier, height=900)
+            st.iframe(_rapport_html(str(fichier)), height=900)
         else:
             st.info(T("Rapport non généré : lancer scripts/rapports_profiling.py.", "Report not generated: run scripts/rapports_profiling.py."))

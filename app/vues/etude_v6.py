@@ -1,9 +1,10 @@
-"""Onglet « Étude comparative V6 » de la page Performances : résultats de l'étude du groupe."""
+"""Onglet « Variantes » de la page Performances : modèles comparés et résultats de l'étude comparative du groupe."""
 import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
 
 from ballguard import config
+from ballguard.config import RETENU_CLUSTERING
 from ui.composants import carte_chaleur, html, ncle, titre_carte, tracer
 from ui.i18n import T, nombre
 
@@ -17,9 +18,9 @@ def _csv(nom):
 
 
 def onglet(p, art):
-    st.caption(T("Résultats de l’étude comparative V6 menée par le groupe : 4 autoencodeurs, 3 algorithmes de clustering, audit et tests de robustesse. "
+    st.caption(T("Résultats de l’étude comparative menée par le groupe : 4 autoencodeurs, 3 algorithmes de clustering, audit et tests de robustesse. "
                  "Tableaux repris tels quels (donnees/etude_v6/). Même base et même découpage que l’application.",
-                 "Results of the group’s V6 comparative study: 4 autoencoders, 3 clustering algorithms, audit and robustness tests. "
+                 "Results of the group’s comparative study: 4 autoencoders, 3 clustering algorithms, audit and robustness tests. "
                  "Tables shown as produced (donnees/etude_v6/). Same data and same split as the app."))
 
     with st.container(border=True, key=ncle()):
@@ -27,11 +28,15 @@ def onglet(p, art):
                     T("Réentraînés par scripts/entrainer.py, évalués sur le jeu de test, sélectionnables dans Diagnostic et Espace latent",
                       "Retrained by scripts/entrainer.py, evaluated on the test set, selectable in Diagnosis and Latent space"))
         lignes = "".join(
-            f'<tr class="{"hl" if i == 0 else ""}"><td>{l["variante"]}{" · " + T("retenu", "selected") if i == 0 else ""}</td>'
+            f'<tr class="{"hl" if l["variante"] == RETENU_CLUSTERING else ""}"><td>{l["variante"]}{" · " + T("retenu", "selected") if l["variante"] == RETENU_CLUSTERING else ""}</td>'
             f'<td class="n">{nombre(l["ARI"], 3)}</td><td class="n">{nombre(l["NMI"], 3)}</td><td class="n">{nombre(l["silhouette"], 3)}</td>'
-            f'<td class="n">{nombre(l["exactitude"] * 100, 1)} %</td></tr>' for i, l in enumerate(art["variantes"]))
+            f'<td class="n">{nombre(l["exactitude"] * 100, 1)} %</td></tr>' for l in sorted(art["variantes"], key=lambda l: l["variante"] != RETENU_CLUSTERING))
         html(f'<div class="bg-scroll"><table class="bg-table"><tr><th>{T("Modèle", "Model")}</th><th class="n">ARI</th><th class="n">NMI</th>'
              f'<th class="n">Silhouette</th><th class="n">{T("État correct", "Correct state")}</th></tr>{lignes}</table></div>')
+        st.caption(T("Le CNN-AE spectral + K-means est retenu : il atteint l’ARI et le taux d’états corrects maximaux, avec les groupes les plus nets (silhouette). "
+                     "Les deux variantes MLP-AE restent proposées : elles s’expliquent descripteur par descripteur.",
+                     "The spectral CNN-AE + K-means is selected: it reaches the highest ARI and correct-state rate, with the sharpest groups (silhouette). "
+                     "The two MLP-AE variants remain available: they can be explained feature by feature."))
 
     g, d = st.columns([1.3, 1])
     with g.container(border=True, key=ncle()):
@@ -82,12 +87,16 @@ def onglet(p, art):
     with st.container(border=True, key=ncle()):
         titre_carte(T("Ce que conclut l’étude", "What the study concludes"))
         points = (
-            T("Tous les autoencodeurs détectent 100 % des défauts ; MLP-AE, Denoising-AE et ACP font le moins de fausses alarmes (3).",
-              "All autoencoders detect 100% of faults; MLP-AE, Denoising-AE and PCA give the fewest false alarms (3)."),
+            T("Tous les autoencodeurs détectent 100 % des défauts ; dans l’étude, MLP-AE, Denoising-AE et ACP font le moins de fausses alarmes (3). "
+              "L’autoencodeur spectral de l’application fait mieux (aucune) : c’est le modèle de détection retenu.",
+              "All autoencoders detect 100% of faults; in the study, MLP-AE, Denoising-AE and PCA give the fewest false alarms (3). "
+              "The app’s spectral autoencoder does better (none): it is the selected detection model."),
             T("La correction de la vitesse est le facteur décisif : l’ARI passe d’environ 0,5 à plus de 0,98 pour toutes les familles.",
               "Speed correction is the decisive factor: ARI rises from about 0.5 to above 0.98 for every family."),
-            T("Le CNN-AE spectral est le seul parfait avec K-means, GMM et BIRCH, mais il lit 512 valeurs de spectre au lieu de 26 descripteurs.",
-              "The spectral CNN-AE is the only one perfect with K-means, GMM and BIRCH, but it reads 512 spectrum values instead of 26 features."),
+            T("Le CNN-AE spectral est le seul parfait avec K-means, GMM et BIRCH : c’est le modèle de clustering retenu. Contrepartie : il lit le spectre "
+              "(512 valeurs), son erreur ne s’explique donc pas descripteur par descripteur.",
+              "The spectral CNN-AE is the only one perfect with K-means, GMM and BIRCH: it is the selected clustering model. Trade-off: it reads the spectrum "
+              "(512 values), so its error cannot be explained feature by feature."),
             T("Un GMM sur les 26 descripteurs corrigés atteint aussi ARI = 1 sans autoencodeur : l’apport de l’autoencodeur n’est pas démontré sur ce banc.",
               "A GMM on the 26 corrected features also reaches ARI = 1 without an autoencoder: the autoencoder’s benefit is not shown on this bench."),
             T("Aucun identifiant de série physique n’existe : l’indépendance entre entraînement et test n’est pas garantie.",
