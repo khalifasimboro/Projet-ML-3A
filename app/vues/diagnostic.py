@@ -57,7 +57,7 @@ def _lecture(r, variante):
                    f"Le type le plus probable est <b>{nom_etat(etat).lower()}</b> ({prox * 100:.0f} %).",
                    f"This signal deviates <b>{_x(rapport)}</b> more than the limit allowed for a healthy bearing: Ballguard concludes there is a <b>fault</b>. "
                    f"The most likely type is <b>{nom_etat(etat).lower()}</b> ({prox:.0%}).")
-        if variante != "cnn":
+        if variante not in SPECTRALES:
             phrase += T(f" Le descripteur qui pèse le plus dans l’alarme : <b>{nom_desc(top_desc, True)}</b> ({top_part * 100:.0f} % de l’erreur).",
                         f" The feature weighing most in the alarm: <b>{nom_desc(top_desc, True)}</b> ({top_part:.0%} of the error).")
     else:
@@ -68,16 +68,27 @@ def _lecture(r, variante):
     avert = ""
     if r["alarme"] == (etat == "SAFE"):
         avert = (f'<div class="avert">{T("Attention : la détection et le type estimé ne concordent pas. Le signal est proche de la limite, le résultat est à confirmer.", "Caution: detection and estimated type disagree. The signal is close to the limit; the result should be confirmed.")}</div>')
-    quoi = T("le spectre", "the spectrum") if variante == "cnn" else T("les 26 descripteurs", "the 26 features")
+    quoi = T("le spectre", "the spectrum") if variante in SPECTRALES else T("les 26 descripteurs", "the 26 features")
     lecture(phrase, [("Score", T(f"Erreur de reconstruction. L’autoencodeur a appris à reproduire {quoi} de roulements sains : plus le signal s’en écarte, plus il le reconstruit mal et plus le score monte.", f"Reconstruction error. The autoencoder learnt to reproduce {quoi} of healthy bearings: the further the signal is from them, the worse the reconstruction and the higher the score.")),
                      (T("Seuil", "Threshold"), T("La limite qui déclenche l’alarme, fixée pour que 99 % des roulements sains de validation restent en dessous.", "The limit that triggers the alarm, set so that 99% of healthy validation bearings stay below it.")),
                      (T("Rapport", "Ratio"), T("Score divisé par le seuil. Au-dessus de ×1, c’est une alarme ; plus il est grand, plus le signal est loin d’un roulement sain.", "Score divided by the threshold. Above ×1 it is an alarm; the larger it is, the further the signal is from a healthy bearing."))],
             titre=T("Comment lire ce résultat", "How to read this result"), avertissement=avert)
 
 
+SPECTRALES = ("spec", "cnn")      # variantes qui lisent le spectre (non décomposables par descripteur)
+
+
 def noms_variantes():
-    return {"km": T("MLP-AE + K-means (retenu)", "MLP-AE + K-means (selected)"), "gmm": "MLP-AE + GMM",
-            "cnn": T("CNN-AE spectral + K-means", "Spectral CNN-AE + K-means")}
+    """Modèles proposés dans le Diagnostic : le modèle retenu en premier, puis les deux variantes sur descripteurs."""
+    return {"spec": T("Modèle retenu (spectre)", "Selected model (spectrum)"),
+            "km": T("Variante : MLP-AE + K-means", "Variant: MLP-AE + K-means"),
+            "gmm": T("Variante : MLP-AE + GMM", "Variant: MLP-AE + GMM")}
+
+
+def nom_detecteur(code):
+    return {"AE (spectre)": T("Autoencodeur spectral", "Spectral autoencoder"),
+            "AE (descripteurs)": T("Autoencodeur (descripteurs)", "Autoencoder (features)"),
+            "ACP": T("ACP", "PCA")}.get(code, code)
 
 
 def _rapport(nom, vitesse, r):
@@ -85,7 +96,7 @@ def _rapport(nom, vitesse, r):
               f"{T('Fichier', 'File')} : {nom}", f"{T('Vitesse', 'Speed')} : {vitesse}",
               f"{T('Verdict', 'Verdict')} : {T('DEFAUT DETECTE', 'FAULT DETECTED') if r['alarme'] else T('ROULEMENT SAIN', 'HEALTHY BEARING')}",
               f"{T('Etat estime', 'Estimated state')} : {nom_etat(r['etat_estime'])}",
-              f"{T('Modele', 'Model')} : {noms_variantes()[r['variante']]}",
+              f"{T('Modele', 'Model')} : {noms_variantes().get(r['variante'], r['variante'])}",
               f"{T('Score anomalie', 'Anomaly score')} : {r['score']:.4f} ({T('seuil', 'threshold')} {r['seuil']:.4f})", "",
               T("Modeles compares :", "Models compared:")]
     lignes += [f"  - {c['modele']}: {'ALARME' if c['alarme'] else 'normal'} (score/seuil x{c['score'] / c['seuil']:.2f})" for c in r["comparaison"]]
@@ -139,8 +150,10 @@ def page():
             sources = [(l.fichier, (config.DOSSIER_EXEMPLES / l.fichier).read_bytes(), int(l.vitesse))]
         noms = noms_variantes()
         variante = st.radio(T("Modèle de diagnostic", "Diagnosis model"), list(noms), format_func=noms.get, key="diag_var",
-                            help=T("Le modèle retenu reste le MLP-AE + K-means. Les deux autres viennent de l’étude comparative V6 du groupe.",
-                                   "The selected model remains MLP-AE + K-means. The other two come from the group’s V6 comparative study."))
+                            help=T("Modèle retenu : l’autoencodeur spectral donne l’alarme (0 fausse alarme sur le test) et le CNN-AE spectral + K-means "
+                                   "donne le type de défaut (100 % d’états corrects). Les deux variantes travaillent sur les 26 descripteurs.",
+                                   "Selected model: the spectral autoencoder raises the alarm (0 false alarms on the test set) and the spectral CNN-AE + K-means "
+                                   "gives the fault type (100% correct states). The two variants work on the 26 features."))
         note(T("Étapes : lecture du fichier → 26 descripteurs et spectre → autoencodeur de détection → encodeur + clustering.",
                "Steps: file read → 26 features and spectrum → detection autoencoder → encoder + clustering."))
 
@@ -190,9 +203,11 @@ def page():
             a, b = st.columns(2)
             with a.container(border=True, key=ncle()):
                 titre_carte(T("Pourquoi ce verdict ?", "Why this verdict?"), T("Part de l’erreur de reconstruction portée par chaque descripteur (autoencodeur MLP)", "Share of the reconstruction error carried by each feature (MLP autoencoder)"))
-                if variante == "cnn":
-                    st.caption(T("Le CNN lit le spectre entier : son erreur ne se décompose pas par descripteur. Voici l’explication du MLP-AE pour le même signal.",
-                                 "The CNN reads the whole spectrum: its error does not split by feature. Here is the MLP-AE explanation for the same signal."))
+                if variante in SPECTRALES:
+                    st.caption(T("Le modèle retenu lit le spectre entier : son erreur ne se décompose pas par descripteur. "
+                                 "Voici l’explication de l’autoencodeur sur les 26 descripteurs pour le même signal.",
+                                 "The selected model reads the whole spectrum: its error does not split by feature. "
+                                 "Here is the explanation from the autoencoder on the 26 features for the same signal."))
                 hors = [f for f, v in r["descripteurs"].items() if not r["plage_saine"][f][0] <= v <= r["plage_saine"][f][1]]
                 barres([(nom_desc(f), v, f"{v:.0%}") for f, v in list(r["contributions"].items())[:7]])
                 st.caption(T(f"{len(hors)} descripteur(s) sur 26 hors de la plage des roulements sains à cette vitesse.", f"{len(hors)} of 26 feature(s) outside the healthy-bearing range at this speed."))
@@ -207,7 +222,7 @@ def page():
                          "Baselines (Isolation Forest, PCA) and autoencoders judge the same signal, each with its own limit. "
                          "“× threshold”: how many times the score exceeds that limit. If all agree, the result is robust."))
             lignes = "".join(
-                f'<tr class="{"hl" if c["modele"] == ("CNN-AE spectral" if variante == "cnn" else "Autoencodeur") else ""}"><td>{T("Autoencodeur", "Autoencoder") if c["modele"] == "Autoencodeur" else c["modele"]}</td>'
+                f'<tr class="{"hl" if c["modele"] == {"spec": "AE (spectre)", "cnn": "CNN-AE spectral"}.get(variante, "AE (descripteurs)") else ""}"><td>{nom_detecteur(c["modele"])}</td>'
                 f'<td>{pastille(T("Alarme", "Alarm"), p["alarm"]) if c["alarme"] else pastille("Normal", p["ok"])}</td>'
                 f'<td class="n">×{nombre(c["score"] / c["seuil"], 2 if c["score"] / c["seuil"] < 100 else 0)}</td></tr>' for c in r["comparaison"])
             with st.container(border=True, key=ncle()):

@@ -3,7 +3,7 @@ import joblib
 import numpy as np
 import pandas as pd
 
-from .config import CLASSES, FICHIER_MODELE
+from .config import CLASSES, FICHIER_MODELE, VITESSES
 from .descripteurs import extraire_depuis_signal
 from .lecture import lire_signal
 from .modeles import encoder, erreur_par_descripteur
@@ -50,7 +50,10 @@ def analyser(modele, descripteurs, vitesses):
                          "etat_estime": [diag["nom_cluster"][int(c)] for c in clusters]}, index=descripteurs.index)
 
 
-VARIANTES = ("km", "gmm", "cnn")   # MLP-AE + K-means (défaut), MLP-AE + GMM, CNN-AE spectral + K-means
+# "spec" (retenu) : détection par l'AE spectral + type de défaut par le CNN-AE spectral + K-means
+# "km", "gmm"     : MLP-AE sur les 26 descripteurs + K-means ou GMM (seuls explicables descripteur par descripteur)
+# "cnn"           : CNN-AE spectral pour la détection et le type (conservé pour comparaison)
+VARIANTES = ("spec", "km", "gmm", "cnn")
 
 
 def _proximite_distances(dist, noms):
@@ -70,22 +73,58 @@ def _cnn(modele):
     return v["_reseaux"]
 
 
+def score_spectre(modele, spectres):
+    """Erreur de reconstruction de l'autoencodeur spectral (modèle de détection retenu), un score par signal."""
+    d = modele["detection_spectre"]
+    X = d["scaler"].transform(np.atleast_2d(np.asarray(spectres, dtype=float)))
+    return ((X - d["autoencodeur"].predict(X)) ** 2).mean(axis=1)
+
+
+def type_cnn(modele, spectres, vitesses):
+    """Type de défaut par le CNN-AE spectral + K-means (modèle retenu). Renvoie (clusters, distances aux centres)."""
+    from .cnn import encoder_cnn
+    v = modele["variantes"]["cnn"]
+    S = np.atleast_2d(np.asarray(spectres, dtype=float))
+    vitesses = np.asarray(vitesses).astype(int)
+    S_v = np.zeros_like(S, dtype=np.float32)
+    for vit in set(vitesses.tolist()):
+        m = vitesses == vit
+        S_v[m] = v["scalers_vitesse"][vit].transform(S[m])
+    Z = encoder_cnn(_cnn(modele)[1], S_v)
+    dist = np.linalg.norm(Z[:, None, :] - v["kmeans"].cluster_centers_[None, :, :], axis=2)
+    return dist.argmin(axis=1), dist
+
+
+def analyser_retenu(modele, spectres, vitesses):
+    """Modèle retenu appliqué à une série de spectres : score (AE spectral), alarme, état (CNN-AE + K-means)."""
+    vitesses = np.asarray(vitesses).astype(int)
+    inconnues = sorted(set(vitesses.tolist()) - set(VITESSES))
+    if inconnues:
+        raise VitesseInconnue(f"vitesse(s) {inconnues} inconnue(s) : le modèle connaît {VITESSES}")
+    score = score_spectre(modele, spectres)
+    clusters, _ = type_cnn(modele, spectres, vitesses)
+    noms = modele["variantes"]["cnn"]["nom_cluster"]
+    return pd.DataFrame({"score_anomalie": score, "alarme": score > modele["detection_spectre"]["seuil"],
+                         "cluster": clusters, "etat_estime": [noms[int(c)] for c in clusters]})
+
+
 def score_cnn(modele, spectre):
     from .cnn import erreur_cnn
     v = modele["variantes"]["cnn"]
     return float(erreur_cnn(_cnn(modele)[0], v["scaler_det"].transform(np.asarray(spectre)[None]))[0])
 
 
-def expliquer(modele, desc, vitesse, spectre=None, variante="km"):
+def expliquer(modele, desc, vitesse, spectre=None, variante="spec"):
     """Diagnostic détaillé d'un seul signal à partir de ses 26 descripteurs (dict) et de son spectre.
 
-    `variante` choisit le modèle qui donne le verdict et le type de défaut : "km" (MLP-AE + K-means, défaut),
-    "gmm" (MLP-AE + GMM) ou "cnn" (CNN-AE spectral, qui demande le spectre).
+    `variante` choisit le modèle qui donne le verdict et le type de défaut : "spec" (retenu : AE spectral pour la
+    détection, CNN-AE spectral + K-means pour le type), "km" (MLP-AE + K-means), "gmm" (MLP-AE + GMM) ou "cnn"
+    (CNN-AE spectral pour les deux). Les variantes spectrales demandent le spectre.
     """
     if variante not in VARIANTES:
         raise ValueError(f"variante inconnue : {variante}")
-    if variante == "cnn" and spectre is None:
-        raise ValueError("la variante CNN a besoin du spectre du signal")
+    if variante in ("spec", "cnn") and spectre is None:
+        raise ValueError("cette variante a besoin du spectre du signal")
     D = pd.DataFrame([desc])[modele["features"]]
     det, base, diag = modele["detection"], modele["baselines"], modele["diagnostic"]
     Xd = det["scaler"].transform(D.to_numpy())
@@ -98,21 +137,24 @@ def expliquer(modele, desc, vitesse, spectre=None, variante="km"):
     comparaison = [
         {"modele": "Isolation Forest", "score": s_iso, "seuil": base["seuil_iso"], "alarme": s_iso > base["seuil_iso"]},
         {"modele": "ACP", "score": s_pca, "seuil": base["seuil_pca"], "alarme": s_pca > base["seuil_pca"]},
-        {"modele": "Autoencodeur", "score": score, "seuil": det["seuil"], "alarme": score > det["seuil"]},
+        {"modele": "AE (descripteurs)", "score": score, "seuil": det["seuil"], "alarme": score > det["seuil"]},
     ]
+    if spectre is not None and "detection_spectre" in modele:
+        s_spec, seuil_spec = float(score_spectre(modele, spectre)[0]), modele["detection_spectre"]["seuil"]
+        comparaison.insert(0, {"modele": "AE (spectre)", "score": s_spec, "seuil": seuil_spec, "alarme": s_spec > seuil_spec})
     if spectre is not None:
         s_cnn, seuil_cnn = score_cnn(modele, spectre), modele["variantes"]["cnn"]["seuil"]
         comparaison.append({"modele": "CNN-AE spectral", "score": s_cnn, "seuil": seuil_cnn, "alarme": s_cnn > seuil_cnn})
 
     # type de défaut selon la variante choisie
-    if variante == "cnn":
+    if variante in ("spec", "cnn"):
         from .cnn import encoder_cnn
         v = modele["variantes"]["cnn"]
         z = encoder_cnn(_cnn(modele)[1], v["scalers_vitesse"][int(vitesse)].transform(np.asarray(spectre)[None]))
         dist = np.linalg.norm(v["kmeans"].cluster_centers_ - z, axis=1)
         cluster, noms = int(dist.argmin()), v["nom_cluster"]
         proximite = _proximite_distances(dist, noms)
-        score_v, seuil_v = s_cnn, seuil_cnn
+        score_v, seuil_v = (s_spec, seuil_spec) if variante == "spec" else (s_cnn, seuil_cnn)
     else:
         z = encoder(diag["autoencodeur"], _preparer_diagnostic(modele, D, [vitesse]))
         if variante == "gmm":
@@ -141,7 +183,7 @@ def expliquer(modele, desc, vitesse, spectre=None, variante="km"):
     }
 
 
-def diagnostiquer_fichier(modele, source, vitesse, variante="km"):
+def diagnostiquer_fichier(modele, source, vitesse, variante="spec"):
     """Chaîne complète : fichier Excel brut -> descripteurs + spectre -> diagnostic expliqué.
 
     Renvoie (resultat, signal, spectre).

@@ -20,6 +20,13 @@ SEED = 42
 K = 5                       # nombre d'états mécaniques
 PERCENTILE_SEUIL = 99       # seuil = 99e percentile des scores des signaux sains de validation
 
+# Modèle retenu : le meilleur de chaque étape sur le jeu de test (voir la page Performances)
+#   détection (sain ou défaut) : autoencodeur sur le spectre, 0 fausse alarme
+#   type de défaut             : CNN-AE spectral + K-means, ARI 1,000 et 100 % d’états corrects
+RETENU_DETECTION = "AE (spectre)"
+RETENU_CLUSTERING = "CNN-AE spectral + K-means"
+VARIANTE_RETENUE = "spec"
+
 # Fichiers
 DOSSIER_DONNEES_BRUTES = RACINE / "data"                 # hors dépôt (4 Go)
 FICHIER_DESCRIPTEURS = RACINE / "donnees" / "descripteurs.csv"

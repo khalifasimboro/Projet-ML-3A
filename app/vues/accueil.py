@@ -1,6 +1,7 @@
 """Accueil : l'essentiel en un écran (reprend la maquette validée)."""
 import streamlit as st
 
+from ballguard.config import RETENU_CLUSTERING, RETENU_DETECTION
 from ui import donnees
 from ui.composants import html, pied
 from ui.i18n import T, nombre
@@ -45,6 +46,8 @@ def _css():
 .bg-k .val{{font-family:var(--display);font-size:2rem;font-weight:600;line-height:1.2;font-variant-numeric:tabular-nums}}
 .bg-k .val small{{font-size:1rem;color:var(--fg);font-weight:600;margin-left:.2rem}}
 .bg-k .hint{{font-size:.8rem;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}}
+.bg-k .src{{margin-top:.45rem;padding-top:.4rem;border-top:1px dashed var(--line);font-size:.7rem;font-weight:600;color:var(--accent);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}}
 .bg-k svg{{width:34px;height:34px;flex:none;margin-top:.5rem}}
 .st-key-bgpanneau{{background:var(--surface);border:1px solid var(--line)!important;border-radius:16px!important;box-shadow:var(--shadow);padding:1.1rem 1.2rem!important}}
 .bg-ptitre{{display:flex;align-items:center;gap:.6rem;font-family:var(--display);font-weight:600;font-size:1.08rem;margin:0 0 .2rem}}
@@ -71,7 +74,8 @@ def _css():
 def page():
     p = st.session_state
     art, pages = donnees.artefacts(), p["pages"]
-    det = next(l for l in art["detection"]["table"] if l["modele"] == "AE (descripteurs)")
+    det = next(l for l in art["detection"]["table"] if l["modele"] == RETENU_DETECTION)          # modèle retenu, détection
+    clu = next(l for l in art["variantes"] if l["variante"] == RETENU_CLUSTERING)              # modèle retenu, type de défaut
     n_sains = sum(det["confusion"][0])
     ac = "var(--accent)"
     html(_css())
@@ -79,23 +83,26 @@ def page():
     with st.container(key="bghero"):
         html('<div class="bg-banniere" role="img" aria-label="Train à grande vitesse"></div>')
 
+    det_src = T("Détection · autoencodeur spectral", "Detection · spectral autoencoder")
     cartes = [
-        (T("Signaux analysés", "Signals analysed"), nombre(art["meta"]["n"], 0), "", T("5 états · 3 vitesses", "5 states · 3 speeds"), _svg(I_BARRES, ac)),
-        (T("Défauts détectés", "Faults detected"), nombre(det["rappel"] * 100, 0), "%", T("Jeu de test", "Test set"), _svg(I_COCHE, "var(--ok)")),
+        (T("Signaux analysés", "Signals analysed"), nombre(art["meta"]["n"], 0), "", T("5 états · 3 vitesses", "5 states · 3 speeds"),
+         T("Base du banc de test", "Test-bench database"), _svg(I_BARRES, ac)),
+        (T("Défauts détectés", "Faults detected"), nombre(det["rappel"] * 100, 0), "%", T("Jeu de test", "Test set"), det_src, _svg(I_COCHE, "var(--ok)")),
         (T("Fausses alarmes", "False alarms"), nombre(det["fausses_alarmes"] * 100, 1), "%",
-         T(f"{det['nb_fausses_alarmes']} sains sur {n_sains}", f"{det['nb_fausses_alarmes']} healthy out of {n_sains}"), _svg(I_CIBLE, "var(--muted)")),
-        (T("Accord clusters/états", "Cluster/state agreement"), nombre(art["clustering"]["corrige"]["autoencodeur"]["ARI"], 3), "", "ARI", _svg(I_RESEAU, "var(--INNER-RACE)")),
+         T(f"{det['nb_fausses_alarmes']} sur {n_sains} roulements sains", f"{det['nb_fausses_alarmes']} out of {n_sains} healthy bearings"), det_src, _svg(I_CIBLE, "var(--muted)")),
+        (T("Accord clusters/états", "Cluster/state agreement"), nombre(clu["ARI"], 3), "", T(f"ARI · {clu['exactitude'] * 100:.0f} % d’états corrects", f"ARI · {clu['exactitude']:.0%} correct states"),
+         T("Clustering · CNN-AE spectral + K-means", "Clustering · spectral CNN-AE + K-means"), _svg(I_RESEAU, "var(--INNER-RACE)")),
     ]
     html('<div class="bg-kpis">' + "".join(
         f'<div class="bg-k"><div><div class="lab" title="{lab}">{lab}</div><div class="val">{val}{"<small>" + unite + "</small>" if unite else ""}</div>'
-        f'<div class="hint">{hint}</div></div>{ic}</div>' for lab, val, unite, hint, ic in cartes) + "</div>")
+        f'<div class="hint">{hint}</div><div class="src" title="{src}">{src}</div></div>{ic}</div>' for lab, val, unite, hint, src, ic in cartes) + "</div>")
 
     with st.container(key="bgpanneau", gap="medium"):
         etapes = [(T("Signal brut", "Raw signal"), T("Fichier Excel, 1 seconde", "Excel file, 1 second")),
-                  (T("26 descripteurs", "26 features"), T("Temps et fréquence", "Time and frequency")),
-                  (T("Autoencodeur", "Autoencoder"), T("Appris sur le sain", "Trained on healthy")),
+                  (T("Spectre", "Spectrum"), T("Welch, 0 à 12,8 kHz · et 26 descripteurs", "Welch, 0 to 12.8 kHz · and 26 features")),
+                  (T("Autoencodeur spectral", "Spectral autoencoder"), T("Appris sur le sain", "Trained on healthy")),
                   (T("Détection", "Detection"), T("Sain ou défaut", "Healthy or fault")),
-                  (T("Diagnostic", "Diagnosis"), T("Type de défaut", "Fault type"))]
+                  (T("Diagnostic", "Diagnosis"), T("Type : CNN-AE + K-means", "Type: CNN-AE + K-means"))]
         html(f'<div class="bg-ptitre">{_svg(I_POULS, ac)}{T("Du signal brut au diagnostic", "From raw signal to diagnosis")}</div>'
                 '<div class="bg-flux">' + '<div class="ar">→</div>'.join(
                     f'<div class="st"><b>{t}</b><span>{s}</span></div>' for t, s in etapes) + "</div>")
