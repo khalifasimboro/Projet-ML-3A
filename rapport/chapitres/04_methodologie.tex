@@ -1,0 +1,61 @@
+\chapter{Protocole expérimental envisagé}
+\label{chap:methodes}
+\begin{encadreinfo}
+\textbf{Statut : protocole proposé, non encore validé.} Les choix finaux devront être justifiés à partir de l'analyse exploratoire, de la taille des données, des moyens de calcul et des consignes pédagogiques.
+\end{encadreinfo}
+
+\section{Construction des jeux d'entraînement, de validation et de test}
+La séparation des données constitue une étape préalable à tout découpage en fenêtres et à tout ajustement de normalisation. Des fenêtres issues d'une même acquisition, voire de plusieurs fichiers contigus appartenant à un même essai, sont potentiellement corrélées. Les répartir au hasard entre entraînement et test pourrait conduire à une estimation artificiellement optimiste des performances.
+
+Le principe retenu sera donc de \textbf{séparer des groupes d'acquisitions indépendants}, dès lors qu'une identification fiable de ces groupes est possible. Si l'identité des essais ne peut pas être établie, la limite devra être documentée et les conclusions adaptées. Les transformations apprises, notamment la normalisation et la sélection de variables, seront ajustées uniquement sur l'entraînement.
+
+\section{Préparation des signaux}
+Les opérations qui pourront être étudiées sont :
+\begin{enumerate}
+  \item contrôle d'intégrité des fichiers et traitement explicite des valeurs manquantes ;
+  \item analyse des différences d'échelle entre les capteurs ;
+  \item segmentation en fenêtres de taille justifiée, avec ou sans recouvrement ;
+  \item standardisation calculée sur l'ensemble d'entraînement uniquement ;
+  \item expérimentation d'entrées temporelles brutes, de caractéristiques vibratoires ou, si la fréquence d'échantillonnage est validée, de représentations spectrales.
+\end{enumerate}
+La taille des fenêtres sera d'abord spécifiée en \emph{nombre d'échantillons}. Sa conversion en durée physique n'est possible que lorsque $f_s$ est confirmé.
+
+\section{Volet A : clustering}
+Le premier volet visera à comparer une ou plusieurs représentations apprises par autoencodeur à des références telles que les caractéristiques statistiques classiques et/ou la réduction de dimension PCA. Les regroupements pourront être calculés par $k$-means et, si pertinent, par un modèle de mélange gaussien.
+
+La qualité intrinsèque du regroupement pourra être examinée au moyen du coefficient de silhouette (lorsque ses conditions d'application sont remplies). Lorsque les étiquettes d'état sont disponibles et fiables, l'accord entre clusters et états connus pourra être étudié avec l'\emph{Adjusted Rand Index} (ARI) et la \emph{Normalized Mutual Information} (NMI). Les étiquettes ne devront pas servir à orienter artificiellement le choix final dans une expérience annoncée comme non supervisée.
+
+\section{Volet B : détection d'anomalies}
+Une approche consiste à entraîner un autoencodeur exclusivement sur des acquisitions \texttt{SAFE}, puis à calculer pour chaque fenêtre un score de reconstruction, par exemple
+\begin{equation}
+  s(\mathbf{x})=\frac{1}{d}\sum_{j=1}^{d}(x_j-\hat{x}_j)^2.
+  \label{eq:score}
+\end{equation}
+Le seuil de décision devra être défini à partir d'un \textbf{jeu de validation séparé}, sans être ajusté sur le test final. Une méthode possible est un quantile fixé a priori de la distribution des scores de validation sains. Une alternative exploitant des défauts étiquetés pour la calibration devrait être explicitement qualifiée de protocole partiellement supervisé.
+
+Les comparateurs pourront inclure un score de reconstruction PCA et Isolation Forest \cite{liu2008}. L'évaluation devra porter sur la précision, le rappel, le score F1, l'aire sous la courbe précision--rappel (PR-AUC) et les fausses alertes parmi les acquisitions saines, selon la pertinence de ces indicateurs pour la distribution des classes.
+
+\section{Robustesse, biais et traçabilité}
+Les résultats seront examinés \textbf{par régime de fonctionnement} et, si les métadonnées le permettent, \textbf{par voie de capteur}. Une séparation insuffisante entre les acquisitions ou une dépendance excessive au régime constitue un risque central.
+
+Les expériences devront conserver les paramètres de prétraitement, l'identité des fichiers utilisés, les graines aléatoires, les hyperparamètres, les versions des bibliothèques et les métriques. En cas de multiples fenêtres provenant d'un même fichier, les indicateurs au niveau \emph{fichier ou essai} pourront compléter les métriques au niveau fenêtre, afin de ne pas traiter des observations corrélées comme indépendantes.
+
+\section{Matrice expérimentale à confirmer}
+\begin{table}[htbp]
+\centering\small
+\caption{Expériences prévues : liste indicative, à valider en équipe.}
+\label{tab:experiences}
+\begin{tabularx}{\textwidth}{@{}p{18mm}XXp{23mm}@{}}
+\toprule
+\bfseries ID & \bfseries Approche & \bfseries Objectif & \bfseries Statut\\
+\midrule
+C1 & Caractéristiques vibratoires + $k$-means & Référence clustering & À planifier\\
+C2 & PCA + $k$-means & Référence réduction de dimension & À planifier\\
+C3 & Autoencodeur + $k$-means / GMM & Clustering en espace latent & À planifier\\
+A1 & Isolation Forest / PCA & Références de détection & À planifier\\
+A2 & Autoencodeur entraîné sur SAFE & Score de reconstruction anormal & À planifier\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\acompleter{Ajouter le protocole de découpage validé, la forme exacte des entrées, les modèles effectivement retenus, les espaces d'hyperparamètres, les métriques choisies et leur justification.}

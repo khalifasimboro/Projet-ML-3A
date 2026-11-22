@@ -1,12 +1,14 @@
-# données et fichiers générés
+# données brutes (4 Go, privées) et fichiers locaux
 data/
-*.xlsx
-*.pkl
-*.npy
-*.joblib
+Projets ML_ECC.xlsx
 
 # environnement Python
 venv/
 .venv/
 __pycache__/
 .ipynb_checkpoints/
+.pytest_cache/
+
+# secrets Streamlit
+.streamlit/secrets.toml
+.claude/

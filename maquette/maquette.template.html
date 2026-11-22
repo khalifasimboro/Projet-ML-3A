@@ -1,0 +1,509 @@
+<meta charset="utf-8">
+<title>Ballguard Maquette</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout : rail de navigation sombre fixe (porte le logo dans les deux thèmes) + zone de travail qui change de thème. */
+:root{
+  --bg:#0F1115; --surface:#181B21; --surface2:#20242C; --line:#2D323D; --fg:#F2F3F5; --muted:#9CA3B0;
+  --accent:#F27A1F; --accent-soft:rgba(242,122,31,.15); --accent-fg:#FFFFFF;
+  --rail:#090A0D; --rail-line:#1D2028; --rail-fg:#D5D9E1; --rail-muted:#7C8492;
+  --ok:#3DCB8A; --alarm:#FF5A6A; --warn:#F2B93B;
+  --c-safe:#3DCB8A; --c-ball:#5AAEFF; --c-inner:#BC97FF; --c-outer:#F4C653; --c-comb:#FF6B88;
+  --shadow:0 1px 0 rgba(255,255,255,.045) inset, 0 14px 34px rgba(0,0,0,.42);
+  --display:"Space Grotesk","Segoe UI",system-ui,sans-serif; --body:"Inter","Segoe UI",system-ui,sans-serif; --mono:"JetBrains Mono",Consolas,monospace;
+  color-scheme:dark;
+}
+:root[data-app="light"]{
+  --bg:#F3F4F7; --surface:#FFFFFF; --surface2:#F6F7FA; --line:#E0E4EC; --fg:#101A2C; --muted:#5A667B;
+  --accent:#D9620B; --accent-soft:rgba(228,110,20,.11);
+  --ok:#128A56; --alarm:#D9293B; --warn:#B07A08;
+  --c-safe:#17996A; --c-ball:#2B7FD9; --c-inner:#8A5BE0; --c-outer:#C9940F; --c-comb:#E03A5C;
+  --shadow:0 1px 2px rgba(16,26,44,.06), 0 8px 24px rgba(16,26,44,.06);
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased}
+button{font:inherit;color:inherit;cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.app{display:grid;grid-template-columns:248px minmax(0,1fr);min-height:100%}
+/* ---- rail ---- */
+.rail{background:var(--rail);border-right:1px solid var(--rail-line);display:flex;flex-direction:column;gap:18px;padding:22px 14px 16px;position:sticky;top:0;height:100vh;color:var(--rail-fg)}
+.rail .brand{display:flex;justify-content:center;padding:4px 0 10px}
+.rail .brand img{width:158px;height:auto}
+.nav{display:flex;flex-direction:column;gap:2px}
+.nav .group{font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--rail-muted);padding:12px 10px 6px}
+.nav a{display:flex;align-items:center;gap:11px;padding:9px 10px;border-radius:8px;color:var(--rail-fg);text-decoration:none;font-weight:500;font-size:13.5px;border:1px solid transparent}
+.nav a svg{width:17px;height:17px;flex:none;opacity:.75}
+.nav a:hover{background:#14161C}
+.nav a.on{background:linear-gradient(90deg,rgba(228,110,20,.20),rgba(228,110,20,.04));border-color:rgba(228,110,20,.35);color:#fff}
+.nav a.on svg{opacity:1;color:#F58A2E}
+.rail .model{margin-top:auto;border:1px solid var(--rail-line);border-radius:10px;padding:12px;font-size:12px;color:var(--rail-muted);background:#0F1116}
+.rail .model b{display:flex;align-items:center;gap:7px;color:var(--rail-fg);font-weight:600;margin-bottom:4px}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--ok);box-shadow:0 0 0 3px rgba(47,191,127,.18);flex:none}
+.dot.red{background:var(--alarm);box-shadow:0 0 0 3px rgba(255,77,94,.18)}
+/* ---- main ---- */
+.main{display:flex;flex-direction:column;min-width:0}
+.top{display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding-block:14px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));border-bottom:1px solid var(--line);background:var(--bg);position:sticky;top:env(safe-area-inset-top,0px);z-index:5}
+.top .where{min-width:0;flex:1 1 240px;padding-left:12px}
+.top .crumb{font-size:11.5px;color:var(--muted);letter-spacing:.04em}
+.top h1{font-family:var(--display);font-size:20px;font-weight:600;margin:0;text-wrap:balance}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:9px;padding:3px;background:var(--surface);gap:2px}
+.seg button{border:0;background:transparent;padding:5px 11px;border-radius:6px;font-size:12.5px;font-weight:500;color:var(--muted);display:inline-flex;align-items:center;gap:6px}
+.seg button svg{width:14px;height:14px}
+.seg button.on{background:var(--accent);color:var(--accent-fg)}
+.seg.quiet button.on{background:var(--surface2);color:var(--fg);box-shadow:inset 0 0 0 1px var(--line)}
+.page{padding-block:22px 40px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:18px;max-width:1320px;width:100%}
+@media(min-width:900px){.page,.top{padding-left:28px;padding-right:28px}.top .where{padding-left:0}}
+.lead{color:var(--muted);max-width:68ch;margin:0}
+.grid{display:grid;gap:16px}
+.g4{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+.g3{grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
+.g2{grid-template-columns:repeat(auto-fit,minmax(340px,1fr))}
+.split{grid-template-columns:minmax(260px,320px) minmax(0,1fr)}
+.split-r{grid-template-columns:minmax(0,1fr) minmax(260px,340px)}
+@media(max-width:860px){.split,.split-r{grid-template-columns:minmax(0,1fr)}.g2{grid-template-columns:minmax(0,1fr)}}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px;box-shadow:var(--shadow);min-width:0;display:flex;flex-direction:column;gap:12px}
+.card h3{font-family:var(--display);font-size:15px;font-weight:600;margin:0}
+.card .sub{color:var(--muted);font-size:12.5px;margin:-8px 0 0}
+.head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap}
+.kpi{gap:6px}
+.kpi .lab{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.kpi .val{font-family:var(--display);font-size:30px;font-weight:600;line-height:1.1;font-variant-numeric:tabular-nums}
+.kpi .val small{font-size:15px;color:var(--muted);font-weight:500}
+.kpi .hint{font-size:12px;color:var(--muted)}
+.chart{width:100%;min-height:260px}
+.chart.tall{min-height:380px}.chart.short{min-height:200px}
+.pill{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:3px 10px;font-size:12px;font-weight:600;border:1px solid var(--line);background:var(--surface2);white-space:nowrap}
+.pill i{width:8px;height:8px;border-radius:50%;background:currentColor}
+.btn{border:1px solid var(--line);background:var(--surface2);border-radius:9px;padding:9px 14px;font-weight:600;font-size:13px;display:inline-flex;align-items:center;gap:8px;justify-content:center}
+.btn svg{width:15px;height:15px}
+.btn.pri{background:var(--accent);border-color:var(--accent);color:var(--accent-fg)}
+.btn.pri:hover{filter:brightness(1.08)}
+.btn:hover{border-color:var(--accent)}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+label.f{display:flex;flex-direction:column;gap:6px;font-size:12px;color:var(--muted);font-weight:500}
+select,input[type=range]{font:inherit;color:var(--fg)}
+select{background:var(--surface2);border:1px solid var(--line);border-radius:9px;padding:8px 10px;width:100%}
+input[type=range]{accent-color:var(--accent);width:100%}
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);overflow-x:auto}
+.tabs button{border:0;background:none;padding:10px 14px;font-weight:600;color:var(--muted);border-bottom:2px solid transparent;white-space:nowrap}
+.tabs button.on{color:var(--fg);border-bottom-color:var(--accent)}
+table{border-collapse:collapse;width:100%;font-size:13px}
+th,td{padding:9px 10px;text-align:left;border-bottom:1px solid var(--line)}
+th{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+td.n,th.n{text-align:right;font-variant-numeric:tabular-nums;font-family:var(--mono);font-size:12.5px}
+tr.hl td{background:var(--accent-soft)}
+.scroll{overflow-x:auto}
+/* intro accueil */
+.intro{display:flex;justify-content:space-between;align-items:flex-end;gap:18px;flex-wrap:wrap;padding-block:6px 2px}
+.intro h2{font-family:var(--display);font-size:clamp(22px,2.6vw,30px);line-height:1.15;margin:0 0 6px;font-weight:600;text-wrap:balance;max-width:24ch}
+.intro h2 em{font-style:normal;color:var(--accent)}
+.intro p{color:var(--muted);margin:0;max-width:58ch}
+/* cartes de descripteurs (surveillance) */
+.feats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.fc{position:relative;border:1px solid var(--line);background:var(--surface2);border-radius:12px;padding:11px 12px 8px;display:flex;flex-direction:column;gap:2px;cursor:default;transition:border-color .15s,transform .15s}
+.fc:hover,.fc:focus-visible{border-color:var(--accent);transform:translateY(-2px);z-index:4}
+.fc .nm{font-family:var(--mono);font-size:11px;color:var(--muted);display:flex;justify-content:space-between;gap:6px}
+.fc .v{font-family:var(--display);font-size:21px;font-weight:600;font-variant-numeric:tabular-nums;line-height:1.2}
+.fc.out{border-color:var(--alarm)}.fc.out .v{color:var(--alarm)}
+.fc .tag{font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--ok)}
+.fc.out .tag{color:var(--alarm)}
+.fc svg{width:100%;height:30px;display:block;margin-top:2px}
+.fc .tip{display:none;position:absolute;left:0;bottom:calc(100% + 8px);min-width:210px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 12px;box-shadow:0 12px 30px rgba(0,0,0,.35);font-size:12px}
+.fc:hover .tip,.fc:focus-visible .tip{display:block}
+.fc .tip b{display:block;font-family:var(--display);font-size:13px;margin-bottom:6px}
+.fc .tip div{display:flex;justify-content:space-between;gap:14px;color:var(--muted);padding:2px 0}
+.fc .tip div span:last-child{font-family:var(--mono);color:var(--fg)}
+/* pipeline */
+.pipe{display:flex;gap:8px;flex-wrap:wrap;align-items:stretch}
+.pipe .st{flex:1 1 150px;border:1px solid var(--line);background:var(--surface2);border-radius:12px;padding:12px;min-width:0}
+.pipe .st b{display:block;font-family:var(--display);font-size:13.5px}
+.pipe .st span{font-size:12px;color:var(--muted)}
+.pipe .st code{font-family:var(--mono);font-size:11px;color:var(--accent)}
+.pipe .ar{align-self:center;color:var(--muted);flex:none}
+.pipe .ar svg{width:16px;height:16px}
+@media(max-width:760px){.pipe .ar{display:none}}
+.mod{text-decoration:none;color:inherit;transition:border-color .15s,transform .15s}
+.mod:hover{border-color:var(--accent);transform:translateY(-2px)}
+.mod .ic{width:36px;height:36px;border-radius:10px;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center}
+.mod .ic svg{width:18px;height:18px}
+.mod p{margin:0;color:var(--muted);font-size:13px}
+/* diagnostic */
+.drop{border:1.5px dashed var(--line);border-radius:12px;padding:20px 14px;text-align:center;color:var(--muted);font-size:13px;background:var(--surface2)}
+.drop svg{width:26px;height:26px;color:var(--accent);display:block;margin:0 auto 8px}
+.drop b{color:var(--fg)}
+.verdict{border-radius:14px;padding:18px 20px;display:flex;gap:16px;align-items:center;flex-wrap:wrap;border:1px solid}
+.verdict.bad{background:linear-gradient(90deg,rgba(255,77,94,.16),rgba(255,77,94,.03));border-color:rgba(255,77,94,.45)}
+.verdict.good{background:linear-gradient(90deg,rgba(47,191,127,.16),rgba(47,191,127,.03));border-color:rgba(47,191,127,.45)}
+.verdict .big{font-family:var(--display);font-size:22px;font-weight:700;line-height:1.15}
+.verdict .ic{width:46px;height:46px;border-radius:12px;display:grid;place-items:center;flex:none}
+.verdict.bad .ic{background:var(--alarm);color:#fff}.verdict.good .ic{background:var(--ok);color:#fff}
+.verdict .ic svg{width:24px;height:24px}
+.verdict .meta{margin-left:auto;display:flex;gap:18px;flex-wrap:wrap}
+.verdict .meta div{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+.verdict .meta b{display:block;font-family:var(--mono);font-size:15px;color:var(--fg);letter-spacing:0;text-transform:none}
+.gauge{position:relative;height:14px;border-radius:999px;background:linear-gradient(90deg,var(--ok) 0%,var(--ok) 34%,var(--warn) 42%,var(--alarm) 60%,var(--alarm) 100%);margin:26px 0 22px}
+.gauge .th{position:absolute;top:-8px;bottom:-8px;width:2px;background:var(--fg)}
+.gauge .th span,.gauge .mk span{position:absolute;white-space:nowrap;font-size:11px;font-family:var(--mono);transform:translateX(-50%)}
+.gauge .th span{top:-18px;color:var(--muted)}
+.gauge .mk{position:absolute;top:50%;width:18px;height:18px;border-radius:50%;background:var(--surface);border:4px solid var(--fg);transform:translate(-50%,-50%);box-shadow:0 2px 8px rgba(0,0,0,.4)}
+.gauge .mk span{top:20px;font-weight:600}
+.bars{display:flex;flex-direction:column;gap:8px}
+.bars .b{display:grid;grid-template-columns:118px minmax(0,1fr) 46px;gap:10px;align-items:center;font-size:12.5px}
+.bars .b span:first-child{font-family:var(--mono);font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bars .tr{height:9px;border-radius:99px;background:var(--surface2);overflow:hidden}
+.bars .tr i{display:block;height:100%;border-radius:99px;background:var(--accent)}
+.bars .b span:last-child{text-align:right;font-family:var(--mono);font-size:12px;color:var(--muted)}
+.log{font-family:var(--mono);font-size:12px;display:flex;flex-direction:column;gap:6px;max-height:300px;overflow:auto}
+.log div{display:grid;grid-template-columns:62px minmax(0,1fr);gap:8px;padding:7px 9px;border-radius:8px;background:var(--surface2);border-left:3px solid var(--line)}
+.log div.a{border-left-color:var(--alarm)}.log div.o{border-left-color:var(--ok)}
+.log time{color:var(--muted)}
+.steps{display:flex;flex-direction:column;gap:0}
+.steps .s{display:grid;grid-template-columns:34px minmax(0,1fr);gap:14px;padding-bottom:18px;position:relative}
+.steps .s:not(:last-child)::before{content:"";position:absolute;left:16px;top:34px;bottom:0;width:2px;background:var(--line)}
+.steps .n{width:34px;height:34px;border-radius:50%;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;font-family:var(--display);font-weight:700}
+.steps b{font-family:var(--display);font-size:14.5px}
+.steps p{margin:2px 0 0;color:var(--muted);font-size:13px;max-width:70ch}
+.note{font-size:12px;color:var(--muted);border:1px dashed var(--line);border-radius:10px;padding:10px 12px}
+.legend{display:flex;gap:8px;flex-wrap:wrap}
+.foot{color:var(--muted);font-size:12px;border-top:1px solid var(--line);padding-top:14px;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.people{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px}
+.people div{border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:var(--surface2);font-weight:600;font-size:13px}
+.people span{display:block;font-weight:400;color:var(--muted);font-size:12px}
+/* mobile rail */
+@media(max-width:860px){
+  .app{grid-template-columns:minmax(0,1fr)}
+  .rail{position:static;height:auto;flex-direction:row;align-items:center;gap:10px;padding:10px 12px;overflow-x:auto;border-right:0;border-bottom:1px solid var(--rail-line)}
+  .rail .brand{padding:0}.rail .brand img{width:84px}
+  .nav{flex-direction:row}.nav .group,.rail .model{display:none}
+  .nav a{white-space:nowrap;padding:8px 10px}
+  .top{position:static}
+}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+
+<div class="app" id="app">
+  <aside class="rail">
+    <a class="brand" href="#accueil"><img src="__LOGO_FULL__" alt="Ballguard"></a>
+    <nav class="nav" id="nav"></nav>
+    <div class="model" id="modelcard"></div>
+  </aside>
+  <div class="main">
+    <header class="top">
+      <div class="where"><div class="crumb" id="crumb"></div><h1 id="ptitle"></h1></div>
+      <div class="seg" id="lang" role="group" aria-label="Langue"><button data-l="fr">FR</button><button data-l="en">EN</button></div>
+      <div class="seg" id="theme" role="group" aria-label="Thème"><button data-t="dark"></button><button data-t="light"></button></div>
+    </header>
+    <main class="page" id="page"></main>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/plotly.js-dist-min@2.35.2/plotly.min.js"></script>
+<script>
+const LOGO="__LOGO_FULL__", ICON="__LOGO_ICON__";
+const S={lang:'fr',theme:'light',tab:{},ex:2,vit:20,lat:{corr:true,dim:'2d',col:'etat',k:5},exp:{etat:'INNER_RACE',desc:'kurtosis_vb'},sim:{run:false,i:0,pts:[],log:[],ft:[],speed:1,sc:'deg'}};
+const T=(fr,en)=>S.lang==='fr'?fr:en;
+const I={
+ home:'<path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>',
+ chart:'<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>',
+ scan:'<path d="M3 7V4h3M21 7V4h-3M3 17v3h3M21 17v3h-3M3 12h4l2-4 3 8 2-4h7"/>',
+ pulse:'<path d="M2 12h4l3-8 4 16 3-8h6"/>',
+ orbit:'<circle cx="12" cy="12" r="2.5"/><circle cx="5" cy="7" r="1.5"/><circle cx="19" cy="8" r="1.5"/><circle cx="7" cy="18" r="1.5"/><circle cx="18" cy="17" r="1.5"/>',
+ award:'<path d="M4 20h16M6 20V9l6-5 6 5v11M10 20v-6h4v6"/>',
+ book:'<path d="M4 5a2 2 0 0 1 2-2h14v16H6a2 2 0 0 0-2 2zM4 21V5M9 8h7M9 12h7"/>',
+ up:'<path d="M12 16V4M7 9l5-5 5 5M4 20h16"/>',
+ play:'<path d="M7 4v16l13-8z"/>', pause:'<path d="M7 4v16M17 4v16"/>', reset:'<path d="M4 4v6h6M4.5 15a8 8 0 1 0 1.6-8.2L4 10"/>',
+ dl:'<path d="M12 4v12M7 11l5 5 5-5M4 20h16"/>', arrow:'<path d="M5 12h14M13 6l6 6-6 6"/>',
+ alert:'<path d="M12 3 2 20h20zM12 10v5M12 17.5v.5"/>', check:'<path d="m5 12 5 5 9-10"/>',
+ moon:'<path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/>', sun:'<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.5 1.5M17.5 17.5 19 19M19 5l-1.5 1.5M6.5 17.5 5 19"/>'
+};
+const ic=n=>`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${I[n]}</svg>`;
+const ETATS=['SAFE','BALL','INNER_RACE','OUTER_RACE','COMBINED'];
+const ENOM=e=>({SAFE:T('Sain','Healthy'),BALL:T('Défaut de bille','Ball fault'),INNER_RACE:T('Bague intérieure','Inner race'),OUTER_RACE:T('Bague extérieure','Outer race'),COMBINED:T('Défaut combiné','Combined fault')})[e];
+const CV={SAFE:'--c-safe',BALL:'--c-ball',INNER_RACE:'--c-inner',OUTER_RACE:'--c-outer',COMBINED:'--c-comb'};
+const css=v=>getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const col=e=>css(CV[e]);
+const PAGES=[
+ ['accueil','home',()=>T('Accueil','Home'),()=>T('Vue d\'ensemble','Overview')],
+ ['exploration','chart',()=>T('Exploration des données','Data exploration'),()=>T('Données','Data')],
+ ['diagnostic','scan',()=>T('Diagnostic d\'un signal','Signal diagnosis'),()=>T('Analyse','Analysis')],
+ ['surveillance','pulse',()=>T('Surveillance en continu','Live monitoring'),()=>T('Analyse','Analysis')],
+ ['latent','orbit',()=>T('Espace latent et clustering','Latent space & clustering'),()=>T('Modèles','Models')],
+ ['performances','award',()=>T('Performances des modèles','Model performance'),()=>T('Modèles','Models')],
+ ['methodologie','book',()=>T('Méthodologie et à propos','Methodology & about'),()=>T('Projet','Project')]
+];
+/* RNG déterministe pour les courbes illustratives */
+function rng(seed){let s=seed;return()=>{s=(s*1664525+1013904223)%4294967296;return s/4294967296}}
+function gauss(r){return Math.sqrt(-2*Math.log(r()+1e-9))*Math.cos(6.283*r())}
+function lay(x={}){const fg=css('--fg'),mu=css('--muted'),ln=css('--line');
+ const ax={gridcolor:ln,zerolinecolor:ln,linecolor:ln,tickfont:{color:mu,size:11},title:{font:{color:mu,size:12}}};
+ const o={paper_bgcolor:'rgba(0,0,0,0)',plot_bgcolor:'rgba(0,0,0,0)',font:{family:'Inter, sans-serif',color:fg,size:12},margin:{l:48,r:14,t:10,b:40},
+  legend:{orientation:'h',y:-0.22,font:{color:mu,size:11}},hoverlabel:{bgcolor:css('--surface2'),bordercolor:ln,font:{color:fg}},xaxis:{...ax},yaxis:{...ax}};
+ for(const k in x){o[k]=(k==='xaxis'||k==='yaxis')?{...ax,...x[k],title:{text:x[k].title||'',font:{color:mu,size:12}}}:x[k]}
+ return o}
+function P(id,tr,l){const el=document.getElementById(id);if(el&&window.Plotly)Plotly.react(el,tr,lay(l),{displayModeBar:false,responsive:true})}
+function sig(etat,n=500,seed=7){const r=rng(seed+ETATS.indexOf(etat)*13),amp={SAFE:.22,BALL:.09,INNER_RACE:.35,OUTER_RACE:.3,COMBINED:.5}[etat],per={SAFE:0,BALL:83,INNER_RACE:47,OUTER_RACE:61,COMBINED:33}[etat],pk={SAFE:0,BALL:.45,INNER_RACE:2.2,OUTER_RACE:1.9,COMBINED:3}[etat];
+ const y=[];for(let i=0;i<n;i++){let v=amp*(.6*Math.sin(i*.31)+.4*Math.sin(i*.77)+.5*gauss(r));if(per){const d=i%per;v+=pk*Math.exp(-d/5)*Math.cos(d*1.9)*(.7+.6*r())}y.push(v)}return y}
+function spec(etat,seed=3){const r=rng(seed+ETATS.indexOf(etat)),lift={SAFE:0,BALL:.3,INNER_RACE:1.5,OUTER_RACE:1.3,COMBINED:2}[etat],x=[],y=[];
+ for(let f=.05;f<=12.8;f+=.05){let v=-6.2+lift-.12*f+1.3*Math.exp(-((f-2.4)**2)/.6)+1.1*Math.exp(-((f-7.1)**2)/1.4)*(lift>0?1.4:.6);if(etat==='SAFE')for(const p of[3,6,12])v+=1.6*Math.exp(-((f-p)**2)/.004);v+=.12*gauss(r);x.push(+f.toFixed(2));y.push(Math.pow(10,v))}return{x,y}}
+const DESC=['rms','kurtosis','crete','skew','pkpk','bande1','bande2','bande3','bande4','bande5','bande6','bande7','bande8'].flatMap(d=>[d+'_vb',d+'_v']);
+const EX=[
+ {f:'safe_1489_212.xlsx',e:'SAFE',v:15,s:.021,c:[['bande8_vb',.19],['skew_v',.14],['bande2_v',.12],['crete_vb',.10],['rms_v',.08],['bande4_vb',.07]]},
+ {f:'ball_98_44.xlsx',e:'BALL',v:10,s:4.83,c:[['kurtosis_vb',.31],['crete_vb',.22],['kurtosis_v',.15],['bande6_vb',.09],['rms_vb',.07],['pkpk_vb',.05]]},
+ {f:'inner_1958_17.xlsx',e:'INNER_RACE',v:20,s:38.2,c:[['kurtosis_vb',.27],['bande5_vb',.18],['bande6_vb',.14],['pkpk_vb',.12],['crete_v',.09],['rms_vb',.06]]},
+ {f:'outer_2204_63.xlsx',e:'OUTER_RACE',v:15,s:21.5,c:[['kurtosis_v',.34],['crete_v',.17],['bande4_v',.13],['bande5_vb',.10],['pkpk_v',.08],['kurtosis_vb',.06]]},
+ {f:'combined_731_9.xlsx',e:'COMBINED',v:20,s:96.4,c:[['pkpk_vb',.21],['rms_vb',.19],['bande3_vb',.15],['kurtosis_vb',.13],['bande7_v',.10],['crete_vb',.07]]}];
+const SEUIL=.14;
+const NOTE=()=>`<div class="note">${T('Maquette de navigation. Les chiffres de performance et les effectifs viennent du notebook ; les courbes et les signaux affichés ici sont illustratifs et seront remplacés par les données réelles.','Navigation mockup. Performance figures and counts come from the notebook; the curves and signals shown here are illustrative and will be replaced by real data.')}</div>`;
+const pill=e=>`<span class="pill" style="color:${col(e)}"><i></i>${ENOM(e)}</span>`;
+const tabs=(pg,list)=>{const cur=S.tab[pg]||0;return `<div class="tabs" role="tablist">${list.map((t,i)=>`<button role="tab" class="${i===cur?'on':''}" data-tab="${pg}:${i}">${t}</button>`).join('')}</div>`};
+
+/* ================= PAGES ================= */
+const V={};
+V.accueil=()=>({html:`
+<section class="intro"><div>
+  <h2>${T('Détecter un roulement défectueux <em>avant la panne</em>.','Detect a faulty bearing <em>before it fails</em>.')}</h2>
+  <p>${T('Une seconde de vibration suffit : Ballguard donne l\'alarme, le type de défaut et l\'explication.','One second of vibration is enough: Ballguard gives the alarm, the fault type and the explanation.')}</p></div>
+  <div class="row"><a class="btn pri" href="#diagnostic">${ic('scan')}${T('Analyser un signal','Analyse a signal')}</a><a class="btn" href="#surveillance">${ic('pulse')}${T('Surveillance','Monitoring')}</a></div>
+</section>
+<div class="grid g4">
+ <div class="card kpi"><div class="lab">${T('Signaux analysés','Signals analysed')}</div><div class="val">8 431</div><div class="hint">${T('5 états · 3 vitesses','5 states · 3 speeds')}</div></div>
+ <div class="card kpi"><div class="lab">${T('Défauts détectés','Faults detected')}</div><div class="val">100 <small>%</small></div><div class="hint">${T('Jeu de test','Test set')}</div></div>
+ <div class="card kpi"><div class="lab">${T('Fausses alarmes','False alarms')}</div><div class="val">1,2 <small>%</small></div><div class="hint">${T('3 signaux sains sur 256','3 healthy signals out of 256')}</div></div>
+ <div class="card kpi"><div class="lab">${T('Accord clusters / états','Cluster / state agreement')}</div><div class="val">0,998</div><div class="hint">ARI</div></div>
+</div>
+<div class="card"><h3>${T('Du signal brut au diagnostic','From raw signal to diagnosis')}</h3>
+ <div class="pipe">
+  <div class="st"><b>${T('Signal brut','Raw signal')}</b><span>${T('Fichier Excel, 1 seconde','Excel file, 1 second')}</span></div><div class="ar">${ic('arrow')}</div>
+  <div class="st"><b>${T('26 descripteurs','26 features')}</b><span>${T('Temps et fréquence','Time and frequency')}</span></div><div class="ar">${ic('arrow')}</div>
+  <div class="st"><b>${T('Autoencodeur','Autoencoder')}</b><span>${T('Appris sur le sain','Trained on healthy')}</span></div><div class="ar">${ic('arrow')}</div>
+  <div class="st"><b>${T('Détection','Detection')}</b><span>${T('Sain ou défaut','Healthy or fault')}</span></div><div class="ar">${ic('arrow')}</div>
+  <div class="st"><b>${T('Diagnostic','Diagnosis')}</b><span>${T('Type de défaut','Fault type')}</span></div>
+ </div></div>
+<div class="grid g3">${PAGES.slice(1).map(p=>`<a class="card mod" href="#${p[0]}"><div class="ic">${ic(p[1])}</div><h3>${p[2]()}</h3><p>${MODTXT()[p[0]]}</p></a>`).join('')}</div>`,draw(){}});
+const MODTXT=()=>({exploration:T('Signaux, descripteurs, effet de la vitesse, corrélations.','Signals, features, speed effect, correlations.'),diagnostic:T('Déposez un fichier Excel : alarme, type de défaut et explication.','Drop an Excel file: alarm, fault type and explanation.'),surveillance:T('Rejouez une série d\'acquisitions et suivez le score en direct.','Replay an acquisition series and follow the score live.'),latent:T('Visualisez comment l\'autoencodeur organise les signaux.','See how the autoencoder organises the signals.'),performances:T('Autoencodeurs comparés aux modèles de référence.','Autoencoders compared with baselines.'),methodologie:T('Démarche, données, limites connues, équipe.','Approach, data, known limits, team.')});
+function drawCounts(id){const c={SAFE:[523,664,523],BALL:[566,576,555],INNER_RACE:[556,658,562],OUTER_RACE:[528,562,515],COMBINED:[550,575,519]},op=[.45,.7,1];
+ P(id,[0,1,2].map(i=>({type:'bar',name:T('vitesse ','speed ')+[10,15,20][i],x:ETATS.map(ENOM),y:ETATS.map(e=>c[e][i]),marker:{color:ETATS.map(col),opacity:op[i]}})),{barmode:'group',yaxis:{title:T('fichiers','files')},margin:{l:48,r:10,t:10,b:60}})}
+
+V.exploration=()=>{const t=S.tab.exploration||0;const blocks=[
+`<div class="grid g4">
+ <div class="card kpi"><div class="lab">${T('Acquisitions','Acquisitions')}</div><div class="val">8 432</div><div class="hint">${T('1 fichier écarté à la lecture','1 file rejected on read')}</div></div>
+ <div class="card kpi"><div class="lab">${T('Durée par signal','Signal length')}</div><div class="val">1 <small>s</small></div><div class="hint">25,6 kHz · 25 600 points</div></div>
+ <div class="card kpi"><div class="lab">${T('Descripteurs','Features')}</div><div class="val">26</div><div class="hint">${T('13 par capteur','13 per sensor')}</div></div>
+ <div class="card kpi"><div class="lab">${T('Découpage','Split')}</div><div class="val">70/15/15</div><div class="hint">${T('Train / validation / test, stratifié','Train / validation / test, stratified')}</div></div></div>
+<div class="grid g2"><div class="card"><h3>${T('Acquisitions par état et vitesse','Acquisitions per state and speed')}</h3><div class="chart" id="c_e1"></div></div>
+<div class="card"><h3>${T('Vue d\'ensemble en 2D (ACP)','2D overview (PCA)')}</h3><p class="sub">${T('Chaque point est un signal du jeu d\'entraînement','Each point is a training signal')}</p><div class="chart" id="c_e2"></div></div></div>`,
+`<div class="card"><div class="head"><div><h3>${T('Visualiseur de signal','Signal viewer')}</h3><p class="sub" style="margin-top:2px">${T('100 premières millisecondes et densité spectrale, superposées au profil sain','First 100 ms and spectral density, overlaid on the healthy profile')}</p></div>
+ <div class="seg quiet" id="selEtat">${ETATS.map(e=>`<button data-e="${e}" class="${S.exp.etat===e?'on':''}">${ENOM(e)}</button>`).join('')}</div></div>
+ <div class="grid g2"><div class="chart" id="c_e3"></div><div class="chart" id="c_e4"></div></div></div>`,
+`<div class="card"><div class="head"><h3>${T('Distribution d\'un descripteur par état','Feature distribution per state')}</h3>
+ <label class="f" style="min-width:200px">${T('Descripteur','Feature')}<select id="selDesc">${DESC.map(d=>`<option ${d===S.exp.desc?'selected':''}>${d}</option>`).join('')}</select></label></div><div class="chart tall" id="c_e5"></div></div>
+<div class="card"><h3>${T('Corrélations entre descripteurs','Feature correlations')}</h3><div class="chart tall" id="c_e6"></div></div>`,
+`<div class="grid g2"><div class="card"><h3>${T('La vitesse, facteur de confusion','Speed as a confounder')}</h3><p class="sub">${T('Médiane du RMS par état quand la vitesse augmente','Median RMS per state as speed increases')}</p><div class="chart" id="c_e7"></div></div>
+<div class="card"><h3>${T('Part de variance expliquée (η²)','Share of variance explained (η²)')}</h3><p class="sub">${T('Moyenne sur les 26 descripteurs, avant et après correction','Average over the 26 features, before and after correction')}</p><div class="chart" id="c_e8"></div></div></div>`];
+return {html:`<p class="lead">${T('Comprendre la base avant de modéliser : ce qui distingue un roulement sain d\'un roulement défectueux, et ce qui peut tromper les modèles.','Understand the data before modelling: what separates a healthy bearing from a faulty one, and what can mislead the models.')}</p>
+${tabs('exploration',[T('Vue d\'ensemble','Overview'),T('Signaux','Signals'),T('Descripteurs','Features'),T('Effet de la vitesse','Speed effect')])}${blocks[t]}${NOTE()}`,
+draw(){const r=rng(5);
+ if(t===0){drawCounts('c_e1');const cen={SAFE:[-5,-1],BALL:[-1,2.5],INNER_RACE:[2,-1.5],OUTER_RACE:[1.5,3],COMBINED:[5,.5]};
+  P('c_e2',ETATS.map(e=>({type:'scattergl',mode:'markers',name:ENOM(e),x:Array.from({length:130},(_,i)=>cen[e][0]+(i%3-1)*.9+gauss(r)*.55),y:Array.from({length:130},(_,i)=>cen[e][1]+(i%3-1)*.5+gauss(r)*.5),marker:{color:col(e),size:5,opacity:.75}})),{xaxis:{title:T('composante 1 (54 %)','component 1 (54%)')},yaxis:{title:T('composante 2 (17 %)','component 2 (17%)')},margin:{l:48,r:10,t:10,b:70}})}
+ if(t===1){const e=S.exp.etat,x=Array.from({length:500},(_,i)=>+(i/5).toFixed(1));
+  P('c_e3',[{x,y:sig('SAFE'),name:ENOM('SAFE'),line:{color:css('--muted'),width:1}},...(e==='SAFE'?[]:[{x,y:sig(e),name:ENOM(e),line:{color:col(e),width:1.1}}])],{xaxis:{title:T('temps (ms)','time (ms)')},yaxis:{title:T('accélération (g)','acceleration (g)')},margin:{l:52,r:10,t:10,b:70}});
+  const a=spec('SAFE'),b=spec(e);P('c_e4',[{x:a.x,y:a.y,name:ENOM('SAFE'),line:{color:css('--muted'),width:1.2}},...(e==='SAFE'?[]:[{x:b.x,y:b.y,name:ENOM(e),line:{color:col(e),width:1.3}}])],{xaxis:{title:T('fréquence (kHz)','frequency (kHz)')},yaxis:{title:T('puissance','power'),type:'log'},margin:{l:56,r:10,t:10,b:70}})}
+ if(t===2){const base={SAFE:2.4,BALL:7.5,INNER_RACE:14,OUTER_RACE:11,COMBINED:19},k=1+DESC.indexOf(S.exp.desc)%5*.2;
+  P('c_e5',ETATS.map(e=>({type:'box',name:ENOM(e),y:Array.from({length:90},()=>base[e]*k*Math.exp(gauss(r)*(e==='SAFE'?.08:.3))),marker:{color:col(e),size:3},line:{width:1.4},boxpoints:'outliers'})),{showlegend:false,yaxis:{title:S.exp.desc,type:'log'},margin:{l:56,r:10,t:10,b:40}});
+  const n=DESC.length,z=DESC.map((a,i)=>DESC.map((b,j)=>i===j?1:(Math.abs(i-j)===1&&i>>1===j>>1?.86:(a.startsWith('bande')&&b.startsWith('bande')?.55+.3*Math.cos(i*j):(.25*Math.cos(i*1.7+j*.9))))));
+  P('c_e6',[{type:'heatmap',z,x:DESC,y:DESC,zmin:-1,zmax:1,colorscale:[[0,css('--c-ball')],[.5,css('--surface2')],[1,css('--accent')]],colorbar:{thickness:10,tickfont:{color:css('--muted')}}}],{margin:{l:90,r:10,t:10,b:90},xaxis:{tickangle:-60,tickfont:{size:9,color:css('--muted')}},yaxis:{autorange:'reversed',tickfont:{size:9,color:css('--muted')}}})}
+ if(t===3){const m={SAFE:[.16,.21,.26],BALL:[.08,.13,.2],INNER_RACE:[.14,.3,.5],OUTER_RACE:[.12,.27,.44],COMBINED:[.15,.4,.76]};
+  P('c_e7',ETATS.map(e=>({x:[10,15,20],y:m[e],name:ENOM(e),mode:'lines+markers',line:{color:col(e),width:2},marker:{size:7}})),{xaxis:{title:T('vitesse','speed'),tickvals:[10,15,20]},yaxis:{title:'RMS'},margin:{l:52,r:10,t:10,b:70}});
+  P('c_e8',[{type:'bar',name:T('avant','before'),x:[T('η² vitesse','η² speed'),T('η² état','η² state')],y:[.189,.653],marker:{color:css('--muted')},text:['0,19','0,65'],textposition:'outside'},{type:'bar',name:T('après correction','after correction'),x:[T('η² vitesse','η² speed'),T('η² état','η² state')],y:[0,.9],marker:{color:css('--accent')},text:['0,00','0,90'],textposition:'outside'}],{barmode:'group',yaxis:{range:[0,1.1]},margin:{l:40,r:10,t:10,b:70}})}}}};
+
+V.diagnostic=()=>{const x=EX[S.ex],bad=x.s>SEUIL,pos=s=>Math.max(2,Math.min(98,(Math.log10(s)+3)/6*100));
+return {html:`<p class="lead">${T('Déposez un signal brut : l\'application calcule les 26 descripteurs, interroge le modèle et explique sa décision.','Drop a raw signal: the app computes the 26 features, queries the model and explains its decision.')}</p>
+<div class="grid split">
+ <div class="card"><h3>${T('Signal à analyser','Signal to analyse')}</h3>
+  <div class="drop">${ic('up')}<b>${T('Déposez un ou plusieurs fichiers Excel','Drop one or more Excel files')}</b><br>${T('ou cliquez pour parcourir · .xlsx, 25 600 points','or click to browse · .xlsx, 25,600 points')}</div>
+  <label class="f">${T('Ou choisissez un signal d\'exemple','Or pick a sample signal')}<select id="selEx">${EX.map((e,i)=>`<option value="${i}" ${i===S.ex?'selected':''}>${e.f} · ${ENOM(e.e)}</option>`).join('')}</select></label>
+  <label class="f">${T('Vitesse de rotation','Rotation speed')}<div class="seg quiet" id="selVit" style="align-self:flex-start">${[10,15,20].map(v=>`<button data-v="${v}" class="${v===x.v?'on':''}">${v}</button>`).join('')}</div></label>
+  <button class="btn pri">${ic('scan')}${T('Lancer le diagnostic','Run diagnosis')}</button>
+  <div class="note">${T('Étapes exécutées : lecture du fichier → 26 descripteurs → autoencodeur de détection → encodeur + k-means.','Steps run: file read → 26 features → detection autoencoder → encoder + k-means.')}</div>
+  <div class="row"><button class="btn">${ic('dl')}${T('Rapport','Report')}</button><button class="btn">${ic('dl')}CSV</button></div>
+ </div>
+ <div class="grid">
+  <div class="verdict ${bad?'bad':'good'}"><div class="ic">${ic(bad?'alert':'check')}</div>
+   <div><div style="font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)">${x.f}</div><div class="big">${bad?T('Défaut détecté','Fault detected'):T('Roulement sain','Healthy bearing')}</div><div class="row" style="margin-top:6px">${pill(x.e)}<span class="pill">${T('vitesse','speed')} ${x.v}</span></div></div>
+   <div class="meta"><div>${T('Score','Score')}<b>${x.s.toFixed(3)}</b></div><div>${T('Seuil','Threshold')}<b>${SEUIL.toFixed(3)}</b></div><div>${T('Rapport','Ratio')}<b>×${(x.s/SEUIL).toFixed(1)}</b></div></div></div>
+  <div class="grid g2">
+   <div class="card"><h3>${T('Score d\'anomalie','Anomaly score')}</h3><p class="sub">${T('Erreur de reconstruction de l\'autoencoder, échelle logarithmique','Autoencoder reconstruction error, log scale')}</p>
+    <div class="gauge"><div class="th" style="left:${pos(SEUIL)}%"><span>${T('seuil','threshold')} ${SEUIL}</span></div><div class="mk" style="left:${pos(x.s)}%"><span>${x.s}</span></div></div>
+    <table><tr><th>${T('Modèle','Model')}</th><th>${T('Verdict','Verdict')}</th><th class="n">${T('Score / seuil','Score / threshold')}</th></tr>
+    ${[['Isolation Forest',.9],['ACP / PCA',.8],[T('Autoencodeur','Autoencoder'),1]].map(m=>{const r=x.s/SEUIL*m[1]*(bad?1:.9);return `<tr class="${m[1]===1?'hl':''}"><td>${m[0]}</td><td>${r>1?`<span class="pill" style="color:var(--alarm)"><i></i>${T('Alarme','Alarm')}</span>`:`<span class="pill" style="color:var(--ok)"><i></i>${T('Normal','Normal')}</span>`}</td><td class="n">×${r.toFixed(2)}</td></tr>`}).join('')}</table></div>
+   <div class="card"><h3>${T('Pourquoi ce verdict ?','Why this verdict?')}</h3><p class="sub">${T('Part de l\'erreur de reconstruction portée par chaque descripteur','Share of the reconstruction error carried by each feature')}</p>
+    <div class="bars">${x.c.map(c=>`<div class="b"><span>${c[0]}</span><div class="tr"><i style="width:${c[1]/x.c[0][1]*100}%"></i></div><span>${Math.round(c[1]*100)} %</span></div>`).join('')}</div>
+    <p style="margin:0;font-size:13px;color:var(--muted)">${bad?T('La kurtosis et le facteur de crête signalent des chocs répétés, signature d\'un défaut de roulement.','Kurtosis and crest factor point to repeated impacts, the signature of a bearing fault.'):T('Aucun descripteur ne s\'écarte du comportement sain appris par le modèle.','No feature departs from the healthy behaviour the model learned.')}</p></div>
+  </div>
+  <div class="grid g2">
+   <div class="card"><h3>${T('Signal temporel','Time signal')}</h3><p class="sub">${T('Comparé à un roulement sain à la même vitesse','Compared with a healthy bearing at the same speed')}</p><div class="chart short" id="c_d1"></div></div>
+   <div class="card"><h3>${T('Spectre','Spectrum')}</h3><p class="sub">${T('Densité spectrale de puissance (Welch)','Power spectral density (Welch)')}</p><div class="chart short" id="c_d2"></div></div>
+  </div>
+  <div class="card"><h3>${T('Type de défaut estimé','Estimated fault type')}</h3><p class="sub">${T('Proximité du signal à chaque groupe de l\'espace latent','Closeness of the signal to each latent-space group')}</p>
+   <div class="bars">${ETATS.map(e=>{const p=e===x.e?.94:(.06/4)+(ETATS.indexOf(e)%2)*.01;return `<div class="b"><span style="font-family:var(--body)">${ENOM(e)}</span><div class="tr"><i style="width:${p*100}%;background:${col(e)}"></i></div><span>${Math.round(p*100)} %</span></div>`}).join('')}</div></div>
+ </div></div>${NOTE()}`,
+draw(){const t=Array.from({length:500},(_,i)=>+(i/5).toFixed(1)),m={l:46,r:8,t:6,b:62};
+ P('c_d1',[{x:t,y:sig('SAFE'),name:T('référence saine','healthy reference'),line:{color:css('--muted'),width:1}},{x:t,y:sig(x.e,500,21),name:x.f,line:{color:col(x.e),width:1.1}}],{margin:m,xaxis:{title:'ms'}});
+ const a=spec('SAFE'),b=spec(x.e,9);P('c_d2',[{x:a.x,y:a.y,name:T('référence saine','healthy reference'),line:{color:css('--muted'),width:1.1}},{x:b.x,y:b.y,name:x.f,line:{color:col(x.e),width:1.2}}],{margin:m,xaxis:{title:'kHz'},yaxis:{type:'log'}})}}};
+
+V.surveillance=()=>{const s=S.sim,last=s.pts[s.pts.length-1],al=s.pts.filter(p=>p>SEUIL).length,bad=last>SEUIL;
+return {html:`<p class="lead">${T('Rejouez une série d\'acquisitions dans l\'ordre d\'enregistrement, comme si le capteur était branché sur la machine.','Replay an acquisition series in recording order, as if the sensor were wired to the machine.')}</p>
+<div class="card"><div class="row" style="justify-content:space-between">
+ <div class="row"><label class="f">${T('Scénario','Scenario')}<select id="simSc"><option value="deg" ${s.sc==='deg'?'selected':''}>${T('Dégradation : sain puis bague intérieure','Degradation: healthy then inner race')}</option><option value="safe" ${s.sc==='safe'?'selected':''}>${T('Série saine (safe_1489, vitesse 15)','Healthy series (safe_1489, speed 15)')}</option></select></label>
+ <label class="f">${T('Vitesse de lecture','Playback speed')}<div class="seg quiet" id="simSp">${[1,2,4].map(v=>`<button data-s="${v}" class="${s.speed===v?'on':''}">×${v}</button>`).join('')}</div></label></div>
+ <div class="row"><button class="btn pri" id="simGo">${ic(s.run?'pause':'play')}${s.run?T('Pause','Pause'):T('Démarrer','Start')}</button><button class="btn" id="simRe">${ic('reset')}${T('Réinitialiser','Reset')}</button></div></div></div>
+<div class="grid g4">
+ <div class="card kpi"><div class="lab">${T('État courant','Current state')}</div><div class="val" style="font-size:22px;display:flex;align-items:center;gap:10px"><span class="dot ${bad?'red':''}"></span><span id="k_st">${s.pts.length?(bad?T('Alarme','Alarm'):T('Normal','Normal')):'—'}</span></div><div class="hint" id="k_et">${s.pts.length?(bad?ENOM('INNER_RACE'):ENOM('SAFE')):T('En attente de démarrage','Waiting to start')}</div></div>
+ <div class="card kpi"><div class="lab">${T('Acquisitions lues','Acquisitions read')}</div><div class="val" id="k_n">${s.pts.length}<small> / 120</small></div><div class="hint">${T('1 acquisition = 1 seconde','1 acquisition = 1 second')}</div></div>
+ <div class="card kpi"><div class="lab">${T('Alarmes','Alarms')}</div><div class="val" id="k_al" style="color:${al?'var(--alarm)':'inherit'}">${al}</div><div class="hint">${T('Score au-dessus du seuil','Score above threshold')}</div></div>
+ <div class="card kpi"><div class="lab">${T('Dernier score','Last score')}</div><div class="val" id="k_sc">${last?last.toFixed(3):'—'}</div><div class="hint">${T('Seuil','Threshold')} ${SEUIL}</div></div></div>
+<div class="grid split-r">
+ <div class="card"><h3>${T('Score d\'anomalie en direct','Live anomaly score')}</h3><div class="chart tall" id="c_s1"></div></div>
+ <div class="card"><h3>${T('Journal des événements','Event log')}</h3><div class="log" id="simLog">${s.log.length?s.log.map(l=>`<div class="${l[2]}"><time>${l[0]}</time><span>${l[1]}</span></div>`).join(''):`<div><time>—</time><span>${T('Aucun événement pour l\'instant.','No event yet.')}</span></div>`}</div></div></div>
+<div class="card"><div class="head"><div><h3>${T('Acquisition en cours','Current acquisition')}${s.pts.length?' · n° '+s.pts.length:''}</h3><p class="sub" style="margin-top:2px">${T('Signal simulé et descripteurs calculés. Survolez une carte ou la courbe pour lire les valeurs.','Simulated signal and computed features. Hover a card or the curve to read the values.')}</p></div>
+ <div class="row"><span class="pill" style="color:var(--ok)"><i></i>${T('dans la plage saine','within healthy range')}</span><span class="pill" style="color:var(--alarm)"><i></i>${T('hors plage','out of range')}</span></div></div>
+ <div class="chart short" id="c_s2"></div>
+ <div class="feats">${FEATS.map((f,k)=>featCard(f,k)).join('')}</div></div>${NOTE()}`,
+draw(){drawSim()}}};
+const FEATS=[['rms_vb',.21,.48,.17,.27,3,'g'],['kurtosis_vb',2.3,11,1.9,3.2,2,''],['crete_vb',3.4,9,2.8,4.4,2,''],['pkpk_vb',1.3,5.5,1,1.8,2,'g'],['bande4_vb',-4.6,-3.1,-4.9,-4.3,2,'log'],['bande6_vb',-5,-3.3,-5.3,-4.7,2,'log'],['rms_v',.09,.2,.07,.12,3,'g'],['kurtosis_v',2.5,8,2,3.4,2,'']];
+function featCard(f,k){const h=S.sim.ft.map(r=>r[k]),n=h.length,v=n?h[n-1]:null,out=v!==null&&(v<f[3]||v>f[4]),fm=x=>x.toFixed(f[5]).replace('.',S.lang==='fr'?',':'.');
+ let sp='';if(n>1){const lo=Math.min(f[3],...h),hi=Math.max(f[4],...h),Y=x=>27-(x-lo)/(hi-lo||1)*24,q=h.slice(-60),X=i=>i/(q.length-1)*100;
+  sp=`<rect x="0" y="${Y(f[4])}" width="100" height="${Math.max(1,Y(f[3])-Y(f[4]))}" fill="var(--ok)" opacity=".13"/><polyline fill="none" stroke="${out?'var(--alarm)':'var(--accent)'}" stroke-width="1.6" vector-effect="non-scaling-stroke" points="${q.map((x,i)=>X(i).toFixed(1)+','+Y(x).toFixed(1)).join(' ')}"/>`}
+ return `<div class="fc ${out?'out':''}" tabindex="0"><div class="nm"><span>${f[0]}</span><span>${f[6]}</span></div><div class="v">${v===null?'—':fm(v)}</div><div class="tag">${v===null?'&nbsp;':out?T('hors plage','out of range'):T('normal','normal')}</div>
+ <svg viewBox="0 0 100 30" preserveAspectRatio="none" aria-hidden="true">${sp}</svg>
+ <div class="tip"><b>${f[0]}</b><div><span>${T('Valeur actuelle','Current value')}</span><span>${v===null?'—':fm(v)}</span></div><div><span>${T('Plage saine','Healthy range')}</span><span>${fm(f[3])} – ${fm(f[4])}</span></div><div><span>${T('Min / max de la série','Series min / max')}</span><span>${n?fm(Math.min(...h))+' / '+fm(Math.max(...h)):'—'}</span></div><div><span>${T('Écart au sain','Gap to healthy')}</span><span>${v===null?'—':(v>=f[1]?'+':'')+Math.round((v-f[1])/Math.abs(f[1])*100)+' %'}</span></div></div></div>`}
+function drawSim(){const s=S.sim,x=s.pts.map((_,i)=>i+1),n=s.pts.length,bad=n&&s.pts[n-1]>SEUIL,t=Array.from({length:400},(_,i)=>+(i/4).toFixed(2));
+ P('c_s2',n?[{x:t,y:sig(bad?'INNER_RACE':'SAFE',400,n),line:{color:bad?css('--alarm'):css('--accent'),width:1.1},hovertemplate:'%{x} ms<br>%{y:.3f} g<extra></extra>'}]:[],{showlegend:false,margin:{l:46,r:8,t:6,b:36},xaxis:{title:T('temps (ms)','time (ms)')},yaxis:{title:'g',range:[-3.2,3.2]}});
+ P('c_s1',[{x,y:s.pts,mode:'lines+markers',line:{color:css('--accent'),width:2},marker:{size:5,color:s.pts.map(p=>p>SEUIL?css('--alarm'):css('--ok'))},name:'score'}],
+  {showlegend:false,xaxis:{title:T('numéro d\'acquisition','acquisition number'),range:[0,121]},yaxis:{title:T('score (log)','score (log)'),type:'log',range:[-2.3,2.3]},
+   shapes:[{type:'line',x0:0,x1:121,y0:SEUIL,y1:SEUIL,line:{color:css('--fg'),dash:'dash',width:1.2}},{type:'rect',x0:0,x1:121,y0:SEUIL,y1:200,fillcolor:css('--alarm'),opacity:.06,line:{width:0}}],
+   annotations:[{x:120,y:Math.log10(SEUIL),text:T('seuil','threshold'),showarrow:false,yshift:10,xanchor:'right',font:{color:css('--muted'),size:11}}]})}
+let simT=null;const simR=rng(42);
+function simTick(){const s=S.sim;if(!s.run)return;const i=s.pts.length;if(i>=120){s.run=false;render();return}
+ let v=.03*Math.exp(gauss(simR)*.35);if(s.sc==='deg'&&i>55)v=Math.min(60,.05*Math.exp((i-55)*.16)*Math.exp(gauss(simR)*.25));if(s.sc==='safe'&&(i===38||i===39))v=.3;
+ const was=i&&s.pts[i-1]>SEUIL;s.pts.push(v);const fr=Math.max(0,Math.min(1,Math.log10(v/.05)/2.6));s.ft.push(FEATS.map(f=>f[1]+(f[2]-f[1])*fr+gauss(simR)*(f[4]-f[3])*.13));const tm='00:'+String(Math.floor((i+1)/60)).padStart(2,'0')+':'+String((i+1)%60).padStart(2,'0');
+ if(v>SEUIL&&!was)s.log.unshift([tm,T('Alarme : score ','Alarm: score ')+v.toFixed(3)+T(' au-dessus du seuil',' above threshold'),'a']);
+ if(v<=SEUIL&&was)s.log.unshift([tm,T('Retour à la normale','Back to normal'),'o']);
+ if(location.hash.slice(1)==='surveillance'){render()}}
+function simStart(){clearInterval(simT);simT=setInterval(simTick,420/S.sim.speed)}
+
+/* espace latent : points synthétiques + vrai k-means dans le navigateur */
+function latPts(corr){const r=rng(11),cen={SAFE:[-6,0,1],BALL:[-1,4,-2],INNER_RACE:[3,-3,2],OUTER_RACE:[1,1,-4],COMBINED:[6,3,3]},sp=[[0,-7,-3],[0,0,0],[0,7,3]],pts=[];
+ ETATS.forEach((e,ei)=>[10,15,20].forEach((v,vi)=>{for(let i=0;i<34;i++){const o=corr?[0,0,0]:sp[vi].map(q=>q*1.5),sc=corr?1:.55;pts.push({e,v,p:[0,1,2].map(d=>cen[e][d]*sc+o[d]+gauss(r)*(corr?.75:.5))})}}));return pts}
+function kmeans(pts,k){const r=rng(3);let c=[];for(let i=0;i<k;i++)c.push(pts[Math.floor(r()*pts.length)].p.slice());let a=[];
+ for(let it=0;it<14;it++){a=pts.map(q=>{let b=0,bd=1e9;c.forEach((m,j)=>{const d=(q.p[0]-m[0])**2+(q.p[1]-m[1])**2+(q.p[2]-m[2])**2;if(d<bd){bd=d;b=j}});return b});
+  c=c.map((m,j)=>{const g=pts.filter((_,i)=>a[i]===j);return g.length?[0,1,2].map(d=>g.reduce((s,q)=>s+q.p[d],0)/g.length):m})}return a}
+V.latent=()=>{const L=S.lat,met=L.corr?{ari:'0,998',nmi:'0,997',sil:'0,713',av:'−0,002'}:{ari:'0,510',nmi:'0,666',sil:'0,530',av:'0,226'};
+return {html:`<p class="lead">${T('L\'autoencodeur résume chaque signal en 6 nombres. Cette page montre comment les signaux s\'y organisent, et pourquoi la vitesse devait être corrigée.','The autoencoder summarises each signal in 6 numbers. This page shows how signals arrange themselves there, and why speed had to be corrected.')}</p>
+<div class="card"><div class="row" style="gap:18px">
+ <label class="f">${T('Prétraitement','Preprocessing')}<div class="seg" id="lCorr"><button data-c="0" class="${!L.corr?'on':''}">${T('Sans correction','No correction')}</button><button data-c="1" class="${L.corr?'on':''}">${T('Log + standardisation par vitesse','Log + per-speed scaling')}</button></div></label>
+ <label class="f">${T('Projection','Projection')}<div class="seg quiet" id="lDim"><button data-d="2d" class="${L.dim==='2d'?'on':''}">2D</button><button data-d="3d" class="${L.dim==='3d'?'on':''}">3D</button></div></label>
+ <label class="f">${T('Couleur','Colour')}<div class="seg quiet" id="lCol">${[['etat',T('État','State')],['cluster','Cluster'],['vitesse',T('Vitesse','Speed')]].map(c=>`<button data-k="${c[0]}" class="${L.col===c[0]?'on':''}">${c[1]}</button>`).join('')}</div></label>
+ <label class="f" style="flex:1 1 180px;max-width:260px">${T('Nombre de clusters','Number of clusters')} : k = <b style="color:var(--fg)">${L.k}</b><input type="range" id="lK" min="2" max="15" value="${L.k}"></label></div></div>
+<div class="grid g4">
+ <div class="card kpi"><div class="lab">ARI ${T('vs état','vs state')}</div><div class="val">${met.ari}</div><div class="hint">${T('1 = clusters identiques aux états','1 = clusters match states')}</div></div>
+ <div class="card kpi"><div class="lab">NMI</div><div class="val">${met.nmi}</div><div class="hint">${T('Information partagée','Shared information')}</div></div>
+ <div class="card kpi"><div class="lab">Silhouette</div><div class="val">${met.sil}</div><div class="hint">${T('Netteté des groupes','Group sharpness')}</div></div>
+ <div class="card kpi"><div class="lab">ARI ${T('vs vitesse','vs speed')}</div><div class="val" style="color:${L.corr?'var(--ok)':'var(--alarm)'}">${met.av}</div><div class="hint">${T('Doit être proche de 0','Should be close to 0')}</div></div></div>
+<div class="grid split-r">
+ <div class="card"><div class="head"><h3>${T('Espace latent (jeu de test)','Latent space (test set)')}</h3><div class="legend">${L.col==='etat'?ETATS.map(pill).join(''):''}</div></div>
+  <p class="sub">${L.corr?T('Après correction : 5 groupes, un par état, vitesses mélangées.','After correction: 5 groups, one per state, speeds mixed.'):T('Sans correction : 15 îlots, chaque état est coupé en trois par la vitesse.','No correction: 15 islands, each state is split in three by speed.')}</p><div class="chart tall" id="c_l1" style="min-height:460px"></div></div>
+ <div class="grid"><div class="card"><h3>${T('États × clusters','States × clusters')}</h3><p class="sub">${T('Une diagonale pleine = clustering parfait','A full diagonal = perfect clustering')}</p><div class="chart" id="c_l2"></div></div>
+ <div class="card"><h3>${T('Choix de k','Choosing k')}</h3><p class="sub">${T('Silhouette sur le train, sans étiquettes','Silhouette on train, no labels')}</p><div class="chart short" id="c_l3"></div></div></div></div>${NOTE()}`,
+draw(){const pts=latPts(L.corr),cl=kmeans(pts,L.k),pal=[css('--c-ball'),css('--c-comb'),css('--c-safe'),css('--c-outer'),css('--c-inner'),'#3FD0D4','#F58A2E','#9AA7C0','#E86FD0','#7BD15A','#5C7CFA','#D98C5F','#49B6A6','#C2A7FF','#FF9F9F'];
+ const grp=L.col==='etat'?ETATS.map(e=>[ENOM(e),col(e),pts.filter(q=>q.e===e)]):L.col==='vitesse'?[10,15,20].map((v,i)=>[T('vitesse ','speed ')+v,[css('--c-ball'),css('--c-outer'),css('--c-comb')][i],pts.filter(q=>q.v===v)]):Array.from({length:L.k},(_,j)=>['cluster '+j,pal[j],pts.filter((_,i)=>cl[i]===j)]);
+ if(L.dim==='3d'){const ax={gridcolor:css('--line'),backgroundcolor:'rgba(0,0,0,0)',color:css('--muted'),showticklabels:false,title:''};
+  Plotly.react('c_l1',grp.map(g=>({type:'scatter3d',mode:'markers',name:g[0],x:g[2].map(q=>q.p[0]),y:g[2].map(q=>q.p[1]),z:g[2].map(q=>q.p[2]),marker:{size:3,color:g[1],opacity:.85}})),{...lay({margin:{l:0,r:0,t:0,b:0},showlegend:L.col!=='etat'}),scene:{xaxis:ax,yaxis:ax,zaxis:ax,bgcolor:'rgba(0,0,0,0)'}},{displayModeBar:false,responsive:true})}
+ else P('c_l1',grp.map(g=>({type:'scattergl',mode:'markers',name:g[0],x:g[2].map(q=>q.p[0]+q.p[2]*.35),y:g[2].map(q=>q.p[1]+q.p[2]*.25),marker:{size:6,color:g[1],opacity:.8}})),{showlegend:L.col!=='etat',xaxis:{showticklabels:false,title:'t-SNE 1'},yaxis:{showticklabels:false,title:'t-SNE 2'},margin:{l:30,r:10,t:10,b:L.col==='etat'?30:70}});
+ const z=ETATS.map(e=>Array.from({length:L.k},(_,j)=>pts.filter((q,i)=>q.e===e&&cl[i]===j).length));
+ P('c_l2',[{type:'heatmap',z,x:Array.from({length:L.k},(_,j)=>'c'+j),y:ETATS.map(ENOM),colorscale:[[0,css('--surface2')],[1,css('--accent')]],showscale:false,texttemplate:L.k<=8?'%{z}':'',textfont:{size:10}}],{margin:{l:120,r:8,t:6,b:30},yaxis:{autorange:'reversed'}});
+ const ks=[2,3,4,5,6,7,8,9,10,11,12,13,14,15],a=[.42,.45,.5,.53,.55,.58,.6,.62,.64,.66,.67,.69,.7,.71],b=[.5,.58,.65,.71,.72,.63,.58,.55,.52,.5,.49,.48,.47,.46],y=L.corr?b:a;
+ P('c_l3',[{x:ks,y:a,name:T('sans correction','no correction'),line:{color:css('--muted'),width:1.5,dash:L.corr?'dot':'solid'}},{x:ks,y:b,name:T('corrigé','corrected'),line:{color:css('--accent'),width:L.corr?2.4:1.2}},{x:[L.k],y:[y[L.k-2]],mode:'markers',showlegend:false,marker:{size:11,color:css('--fg'),line:{color:css('--accent'),width:3}}}],{margin:{l:36,r:8,t:6,b:62},xaxis:{title:'k'},yaxis:{range:[.35,.8]}})}}};
+
+V.performances=()=>{const t=S.tab.performances||0;const blocks=[
+`<div class="grid g2"><div class="card"><h3>${T('Détection d\'anomalie sur le jeu de test','Anomaly detection on the test set')}</h3><p class="sub">${T('1 265 signaux, seuil fixé sur les signaux sains de validation','1,265 signals, threshold set on healthy validation signals')}</p>
+ <div class="scroll"><table><tr><th>${T('Modèle','Model')}</th><th>${T('Rôle','Role')}</th><th class="n">AUROC</th><th class="n">${T('Rappel','Recall')}</th><th class="n">${T('Précision','Precision')}</th><th class="n">${T('Fausses alarmes','False alarms')}</th></tr>
+ <tr><td>Isolation Forest</td><td>${T('Référence','Baseline')}</td><td class="n">1,000</td><td class="n">1,000</td><td class="n">0,994</td><td class="n">6 (2,3 %)</td></tr>
+ <tr><td>ACP / PCA</td><td>${T('Référence','Baseline')}</td><td class="n">1,000</td><td class="n">1,000</td><td class="n">0,997</td><td class="n">3 (1,2 %)</td></tr>
+ <tr class="hl"><td><b>${T('Autoencodeur (descripteurs)','Autoencoder (features)')}</b></td><td>${T('Modèle retenu','Selected model')}</td><td class="n">1,000</td><td class="n">1,000</td><td class="n">0,997</td><td class="n">3 (1,2 %)</td></tr>
+ <tr><td>${T('Autoencodeur (spectre)','Autoencoder (spectrum)')}</td><td>${T('Variante','Variant')}</td><td class="n">1,000</td><td class="n">1,000</td><td class="n">1,000</td><td class="n">0 (0,0 %)</td></tr></table></div>
+ <p style="margin:0;color:var(--muted);font-size:13px">${T('Tous les modèles détectent tous les défauts. L\'autoencodeur est retenu pour son erreur interprétable et son espace latent.','All models detect every fault. The autoencoder is selected for its interpretable error and its latent space.')}</p></div>
+ <div class="card"><h3>${T('Matrice de confusion de l\'autoencodeur','Autoencoder confusion matrix')}</h3><div class="chart" id="c_p1"></div></div></div>
+<div class="grid g2"><div class="card"><h3>${T('Courbes ROC','ROC curves')}</h3><p class="sub">${T('Zoom sur les faibles taux de fausses alarmes','Zoom on low false-alarm rates')}</p><div class="chart" id="c_p2"></div></div>
+ <div class="card"><h3>${T('Scores par état','Scores per state')}</h3><p class="sub">${T('Erreur de reconstruction, échelle logarithmique','Reconstruction error, log scale')}</p><div class="chart" id="c_p3"></div></div></div>`,
+`<div class="card"><h3>${T('Trois stratégies de clustering','Three clustering strategies')}</h3><p class="sub">${T('k-means à 5 groupes, évalué sur le jeu de test','k-means with 5 groups, evaluated on the test set')}</p><div class="chart tall" id="c_p4"></div></div>
+<div class="card"><div class="scroll"><table><tr><th>${T('Stratégie','Strategy')}</th><th>${T('Modèle','Model')}</th><th class="n">ARI</th><th class="n">NMI</th><th class="n">Silhouette</th><th class="n">ARI ${T('vs vitesse','vs speed')}</th></tr>
+ <tr><td>${T('Sans correction','No correction')}</td><td>k-means</td><td class="n">0,525</td><td class="n">0,694</td><td class="n">0,492</td><td class="n">0,104</td></tr>
+ <tr><td>${T('Sans correction','No correction')}</td><td>${T('Autoencodeur','Autoencoder')} + k-means</td><td class="n">0,510</td><td class="n">0,666</td><td class="n">0,530</td><td class="n">0,226</td></tr>
+ <tr><td>${T('Un modèle par vitesse','One model per speed')}</td><td>k-means</td><td class="n">0,984</td><td class="n">0,986</td><td class="n">0,702</td><td class="n">—</td></tr>
+ <tr><td>${T('Un modèle par vitesse','One model per speed')}</td><td>${T('Autoencodeur','Autoencoder')} + k-means</td><td class="n">0,998</td><td class="n">0,997</td><td class="n">0,782</td><td class="n">—</td></tr>
+ <tr><td>${T('Log + standardisation par vitesse','Log + per-speed scaling')}</td><td>k-means</td><td class="n">0,992</td><td class="n">0,989</td><td class="n">0,608</td><td class="n">−0,002</td></tr>
+ <tr class="hl"><td><b>${T('Log + standardisation par vitesse','Log + per-speed scaling')}</b></td><td><b>${T('Autoencodeur','Autoencoder')} + k-means</b></td><td class="n">0,998</td><td class="n">0,997</td><td class="n">0,713</td><td class="n">−0,002</td></tr></table></div></div>`,
+`<div class="grid g2"><div class="card"><h3>${T('Importance par permutation','Permutation importance')}</h3><p class="sub">${T('Baisse de performance quand un descripteur est mélangé au hasard','Performance drop when a feature is randomly shuffled')}</p><div class="chart tall" id="c_p5"></div></div>
+ <div class="card"><h3>${T('Erreur par descripteur et par état','Error per feature and state')}</h3><p class="sub">${T('Quels descripteurs trahissent chaque défaut','Which features give each fault away')}</p><div class="chart tall" id="c_p6"></div></div></div>`];
+return {html:`<p class="lead">${T('Les autoencodeurs sont comparés à des modèles de référence simples, sur des signaux jamais vus pendant l\'entraînement.','Autoencoders are compared with simple baselines, on signals never seen during training.')}</p>
+${tabs('performances',[T('Détection','Detection'),'Clustering',T('Interprétabilité','Interpretability')])}${blocks[t]}${NOTE()}`,
+draw(){const r=rng(8);
+ if(t===0){P('c_p1',[{type:'heatmap',z:[[253,3],[0,1009]],x:[T('prédit : normal','predicted: normal'),T('prédit : alarme','predicted: alarm')],y:[T('réel : sain','actual: healthy'),T('réel : défaut','actual: fault')],colorscale:[[0,css('--surface2')],[1,css('--accent')]],showscale:false,texttemplate:'%{z}',textfont:{size:20,family:'Space Grotesk'}}],{margin:{l:110,r:10,t:10,b:40},yaxis:{autorange:'reversed'}});
+  const f=[0,.005,.01,.02,.03,.05];P('c_p2',[['Isolation Forest',[0,.985,.992,.998,1,1],css('--muted')],['ACP / PCA',[0,.992,.998,1,1,1],css('--c-ball')],[T('AE (descripteurs)','AE (features)'),[0,.994,.999,1,1,1],css('--accent')],[T('AE (spectre)','AE (spectrum)'),[0,1,1,1,1,1],css('--c-safe')]].map(m=>({x:f,y:m[1],name:m[0],line:{color:m[2],width:2,shape:'hv'}})),{xaxis:{title:T('taux de fausses alarmes','false-alarm rate'),range:[0,.05]},yaxis:{title:T('taux de détection','detection rate'),range:[.97,1.003]},margin:{l:56,r:10,t:10,b:74}});
+  const b={SAFE:.03,BALL:4,INNER_RACE:30,OUTER_RACE:18,COMBINED:80};P('c_p3',ETATS.map(e=>({type:'box',name:ENOM(e),y:Array.from({length:70},()=>b[e]*Math.exp(gauss(r)*.5)),marker:{color:col(e),size:3},line:{width:1.4}})),{showlegend:false,yaxis:{type:'log',title:'score'},shapes:[{type:'line',xref:'paper',x0:0,x1:1,y0:SEUIL,y1:SEUIL,line:{color:css('--fg'),dash:'dash',width:1.2}}],margin:{l:52,r:10,t:10,b:40}})}
+ if(t===1){const x=[T('Sans correction','No correction'),T('Un modèle par vitesse','One model per speed'),T('Log + standardisation','Log + scaling')];
+  P('c_p4',[{type:'bar',name:'k-means · ARI',x,y:[.525,.984,.992],marker:{color:css('--muted')},text:['0,53','0,98','0,99'],textposition:'outside'},{type:'bar',name:T('Autoencodeur · ARI','Autoencoder · ARI'),x,y:[.51,.998,.998],marker:{color:css('--accent')},text:['0,51','1,00','1,00'],textposition:'outside'},{type:'bar',name:'k-means · silhouette',x,y:[.492,.702,.608],marker:{color:css('--muted'),opacity:.45},text:['0,49','0,70','0,61'],textposition:'outside'},{type:'bar',name:T('Autoencodeur · silhouette','Autoencoder · silhouette'),x,y:[.53,.782,.713],marker:{color:css('--accent'),opacity:.5},text:['0,53','0,78','0,71'],textposition:'outside'}],{barmode:'group',yaxis:{range:[0,1.15]},margin:{l:40,r:10,t:10,b:80}})}
+ if(t===2){const top=['kurtosis_vb','kurtosis_v','crete_vb','bande5_vb','pkpk_vb','bande6_vb','crete_v','rms_vb','bande4_v','bande8_vb'],v=[.31,.24,.19,.15,.13,.11,.09,.07,.05,.03];
+  P('c_p5',[{type:'bar',orientation:'h',y:top,x:v,marker:{color:css('--accent')}}],{margin:{l:110,r:16,t:10,b:40},yaxis:{autorange:'reversed',tickfont:{family:'JetBrains Mono',size:11,color:css('--muted')}},xaxis:{title:T('baisse de l\'ARI','ARI drop')}});
+  const d=DESC.slice(0,16);P('c_p6',[{type:'heatmap',z:ETATS.map((e,i)=>d.map((_,j)=>i===0?.02+.02*r():Math.pow(10,(.4+1.6*Math.abs(Math.sin(i*2.1+j*.9)))))),x:d,y:ETATS.map(ENOM),colorscale:[[0,css('--surface2')],[.5,css('--c-inner')],[1,css('--accent')]],colorbar:{thickness:10,tickfont:{color:css('--muted')}}}],{margin:{l:120,r:8,t:10,b:90},xaxis:{tickangle:-60,tickfont:{size:10,color:css('--muted')}},yaxis:{autorange:'reversed'}})}}}};
+
+V.methodologie=()=>({html:`<p class="lead">${T('Comment Ballguard a été construit, sur quelles données, et ce qu\'il faut garder en tête en lisant ses résultats.','How Ballguard was built, on which data, and what to keep in mind when reading its results.')}</p>
+<div class="grid split-r"><div class="card"><h3>${T('La démarche, étape par étape','The approach, step by step')}</h3><div class="steps">
+${[[T('Découpage avant tout prétraitement','Split before any preprocessing'),T('70 % entraînement, 15 % validation, 15 % test, stratifié par état et vitesse. Toute normalisation est apprise sur l\'entraînement seul.','70% train, 15% validation, 15% test, stratified by state and speed. Every scaler is fitted on train only.')],
+[T('Du signal aux descripteurs','From signal to features'),T('Chaque seconde de vibration est résumée par 13 descripteurs par capteur : 5 temporels et 8 bandes de fréquence.','Each second of vibration is summarised by 13 features per sensor: 5 time-domain and 8 frequency bands.')],
+[T('Détection : apprendre le sain','Detection: learn what healthy looks like'),T('Un autoencodeur entraîné sur les seuls roulements sains. Un signal mal reconstruit est une anomalie.','An autoencoder trained on healthy bearings only. A poorly reconstructed signal is an anomaly.')],
+[T('Corriger l\'effet de la vitesse','Correct the speed effect'),T('Passage au logarithme puis standardisation par vitesse, pour que les groupes reflètent le défaut et non la vitesse.','Log transform then per-speed scaling, so groups reflect the fault rather than the speed.')],
+[T('Diagnostic : regrouper sans étiquettes','Diagnosis: group without labels'),T('k-means à 5 groupes sur l\'espace latent d\'un second autoencodeur. Les étiquettes servent seulement à nommer les groupes.','k-means with 5 groups on the latent space of a second autoencoder. Labels are only used to name the groups.')],
+[T('Comparer et expliquer','Compare and explain'),T('Modèles de référence (Isolation Forest, ACP, k-means direct), décomposition de l\'erreur par descripteur et importance par permutation.','Baselines (Isolation Forest, PCA, plain k-means), per-feature error breakdown and permutation importance.')]].map((s,i)=>`<div class="s"><div class="n">${i+1}</div><div><b>${s[0]}</b><p>${s[1]}</p></div></div>`).join('')}</div></div>
+<div class="grid">
+ <div class="card"><h3>${T('Données','Data')}</h3><table>
+  <tr><td>${T('Source','Source')}</td><td><b>${T('Banc de test','Test bench')}</b></td></tr><tr><td>${T('Acquisitions','Acquisitions')}</td><td class="n">8 432</td></tr>
+  <tr><td>${T('États','States')}</td><td>${T('1 sain, 4 défauts','1 healthy, 4 faults')}</td></tr><tr><td>${T('Vitesses','Speeds')}</td><td class="n">10 · 15 · 20</td></tr>
+  <tr><td>${T('Capteurs','Sensors')}</td><td>${T('2 accéléromètres','2 accelerometers')}</td></tr><tr><td>${T('Échantillonnage','Sampling')}</td><td class="n">25,6 kHz</td></tr></table></div>
+ <div class="card"><h3>${T('Limites connues','Known limits')}</h3><ul style="margin:0;padding-left:18px;color:var(--muted);font-size:13px;display:flex;flex-direction:column;gap:6px">
+  <li>${T('Les scores sont optimistes : des acquisitions consécutives, presque identiques, se retrouvent dans l\'entraînement et le test.','Scores are optimistic: consecutive, near-identical acquisitions end up in both train and test.')}</li>
+  <li>${T('La vitesse doit être connue et faire partie des trois vitesses apprises.','Speed must be known and be one of the three learned speeds.')}</li>
+  <li>${T('Un seul banc de test : la généralisation à d\'autres machines n\'est pas mesurée.','A single test bench: generalisation to other machines is not measured.')}</li></ul></div>
+ <div class="card"><h3>${T('Technologies','Stack')}</h3><div class="row">${['Python','scikit-learn 1.6.1','SciPy','pandas','Plotly','Streamlit'].map(x=>`<span class="pill">${x}</span>`).join('')}</div>
+  <a class="btn" href="https://github.com/khalifasimboro/Projet-ML-3A/tree/Rydouane">${ic('arrow')}${T('Voir le dépôt GitHub','Open the GitHub repository')}</a></div>
+</div></div>
+<div class="card"><h3>${T('Équipe','Team')}</h3><p class="sub">${T('Projet ML, sujet 6','ML project, topic 6')}</p>
+ <div class="people">${['KINDO Harouna','HODONOU Firmin','DOMBOUÉ Tidiane','SIMBORO Rydouane'].map(n=>`<div>${n}<span>${T('Élève ingénieur','Engineering student')}</span></div>`).join('')}</div></div>`,draw(){}});
+
+/* ================= shell ================= */
+function render(){const id=(location.hash.slice(1)||'accueil'),pg=PAGES.find(p=>p[0]===id)||PAGES[0];
+ document.documentElement.dataset.app=S.theme;document.documentElement.lang=S.lang;
+ let last='';document.getElementById('nav').innerHTML=PAGES.map(p=>{const g=p[3]();const h=(g!==last?`<div class="group">${g}</div>`:'');last=g;return h+`<a href="#${p[0]}" class="${p===pg?'on':''}">${ic(p[1])}<span>${p[2]()}</span></a>`}).join('');
+ document.getElementById('modelcard').innerHTML=`<b><span class="dot"></span>${T('Modèle chargé','Model loaded')}</b>modele_final_roulements<br>scikit-learn 1.6.1 · 15/11/2026`;
+ document.getElementById('crumb').textContent='Ballguard / '+pg[3]();document.getElementById('ptitle').textContent=pg[2]();
+ document.querySelectorAll('#lang button').forEach(b=>b.classList.toggle('on',b.dataset.l===S.lang));
+ document.querySelectorAll('#theme button').forEach(b=>{b.classList.toggle('on',b.dataset.t===S.theme);b.innerHTML=ic(b.dataset.t==='dark'?'moon':'sun')+(b.dataset.t==='dark'?T('Sombre','Dark'):T('Clair','Light'))});
+ const v=V[pg[0]]();const el=document.getElementById('page');const sc=window.scrollY;el.innerHTML=v.html+`<div class="foot"><span>Ballguard · ${T('Maintenance prédictive des roulements','Predictive maintenance for bearings')}</span><span>${T('Maquette de navigation v2','Navigation mockup v2')}</span></div>`;
+ try{v.draw()}catch(e){console.error(e)}window.scrollTo(0,sc)}
+document.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;const d=b.dataset;
+ if(d.l){S.lang=d.l}else if(d.t){S.theme=d.t}else if(d.tab){const[p,i]=d.tab.split(':');S.tab[p]=+i}
+ else if(d.e){S.exp.etat=d.e}else if(d.v){S.vit=+d.v;return b.parentNode.querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b))}
+ else if(d.c){S.lat.corr=d.c==='1'}else if(d.d){S.lat.dim=d.d}else if(d.k){S.lat.col=d.k}
+ else if(d.s){S.sim.speed=+d.s;if(S.sim.run)simStart()}
+ else if(b.id==='simGo'){S.sim.run=!S.sim.run;if(S.sim.run){if(S.sim.pts.length>=120){S.sim.pts=[];S.sim.log=[];S.sim.ft=[]}simStart()}else clearInterval(simT)}
+ else if(b.id==='simRe'){S.sim.run=false;clearInterval(simT);S.sim.pts=[];S.sim.log=[];S.sim.ft=[]}
+ else return;render()});
+document.addEventListener('change',e=>{const t=e.target;if(t.id==='selEx')S.ex=+t.value;else if(t.id==='selDesc')S.exp.desc=t.value;else if(t.id==='simSc'){S.sim.sc=t.value;S.sim.pts=[];S.sim.log=[];S.sim.ft=[];S.sim.run=false;clearInterval(simT)}else if(t.id==='lK')S.lat.k=+t.value;else return;render()});
+document.addEventListener('input',e=>{if(e.target.id==='lK'){S.lat.k=+e.target.value}});
+window.addEventListener('hashchange',()=>{window.scrollTo(0,0);render()});
+render();
+</script>

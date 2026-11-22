@@ -1,0 +1,41 @@
+% !TeX program = pdflatex
+% PROJET ML & IA - DOCUMENT SCIENTIFIQUE EVOLUTIF
+% Importer le dossier ZIP dans Overleaf, choisir main.tex comme fichier principal.
+\documentclass[11pt,a4paper,oneside]{report}
+\input{config}
+
+\begin{document}
+\pagenumbering{roman}
+\input{page-garde}
+
+\chapter*{Note aux lecteurs}
+\addcontentsline{toc}{chapter}{Note aux lecteurs}
+\begin{encadreinfo}
+\textbf{Nature du document :} version de cadrage scientifique, \emph{non définitive}.\\
+\textbf{Statut :} premières sections rédigées, démarche expérimentale proposée, résultats non disponibles.\\
+\textbf{Mise à jour :} \DateMiseAJour{} $\vert$ version \VersionRapport.
+\end{encadreinfo}
+Ce document accompagne l'avancement du projet et sert de support de travail commun aux quatre membres de l'équipe. Il sera enrichi et corrigé à mesure que la description du banc d'essai, les métadonnées d'acquisition, les traitements et les résultats seront vérifiés.
+
+Les affirmations sur les \textbf{données disponibles} sont distinguées des \textbf{choix méthodologiques envisagés}. Aucune performance de modèle ni aucun résultat expérimental ne sont annoncés avant leur mesure. Les sections encore incomplètes sont conservées volontairement afin de guider la rédaction progressive.
+
+\tableofcontents
+\clearpage
+\pagenumbering{arabic}
+
+\input{chapitres/01_introduction}
+\input{chapitres/02_cadre_scientifique}
+\input{chapitres/03_donnees}
+\input{chapitres/04_methodologie}
+\input{chapitres/05_resultats}
+\input{chapitres/06_application}
+\input{chapitres/07_discussion_conclusion}
+
+\clearpage
+\addcontentsline{toc}{chapter}{Références bibliographiques}
+\bibliographystyle{unsrt}
+\bibliography{references}
+
+\appendix
+\input{annexes/journal_suivi}
+\end{document}
