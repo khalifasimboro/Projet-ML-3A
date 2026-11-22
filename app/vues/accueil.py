@@ -42,12 +42,11 @@ def _css():
 .bg-k{{display:flex;justify-content:space-between;gap:.8rem;align-items:flex-start;background:var(--surface);border:1px solid var(--line);
   border-radius:14px;padding:1.05rem 1.2rem;box-shadow:var(--shadow);height:100%;box-sizing:border-box;min-width:0}}
 .bg-k>div{{min-width:0}}
-.bg-k .lab{{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:.7rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:500}}
+.bg-k .lab{{font-size:.7rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:500}}
 .bg-k .val{{font-family:var(--display);font-size:2rem;font-weight:600;line-height:1.2;font-variant-numeric:tabular-nums}}
 .bg-k .val small{{font-size:1rem;color:var(--fg);font-weight:600;margin-left:.2rem}}
-.bg-k .hint{{font-size:.8rem;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}}
-.bg-k .src{{margin-top:.45rem;padding-top:.4rem;border-top:1px dashed var(--line);font-size:.7rem;font-weight:600;color:var(--accent);
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}}
+.bg-k .hint{{font-size:.8rem;color:var(--muted);line-height:1.35}}
+.bg-k .src{{margin-top:.45rem;padding-top:.4rem;border-top:1px dashed var(--line);font-size:.7rem;font-weight:600;color:var(--accent);line-height:1.35}}
 .bg-k svg{{width:34px;height:34px;flex:none;margin-top:.5rem}}
 .st-key-bgpanneau{{background:var(--surface);border:1px solid var(--line)!important;border-radius:16px!important;box-shadow:var(--shadow);padding:1.1rem 1.2rem!important}}
 .bg-ptitre{{display:flex;align-items:center;gap:.6rem;font-family:var(--display);font-weight:600;font-size:1.08rem;margin:0 0 .2rem}}
