@@ -110,8 +110,8 @@ def _rapport(nom, vitesse, r):
 def page():
     p = P()
     entete(T("Analyse", "Analysis"), T("Diagnostic d’un signal", "Signal diagnosis"),
-           T("Déposez un signal brut : l’application calcule les 26 descripteurs, interroge le modèle et explique sa décision.",
-             "Drop a raw signal: the app computes the 26 features, queries the model and explains its decision."))
+           T("Déposez un signal brut : l’application calcule son spectre et ses 26 descripteurs, interroge le modèle et explique sa décision.",
+             "Drop a raw signal: the app computes its spectrum and 26 features, queries the model and explains its decision."))
     ex = donnees.exemples()
     html(CSS)
     gauche, droite = st.columns([1, 2.6], gap="medium")
