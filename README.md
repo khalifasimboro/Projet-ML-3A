@@ -15,7 +15,7 @@
   <img src="https://img.shields.io/badge/scikit--learn-1.6.1-F7931E?logo=scikitlearn&logoColor=white" alt="scikit-learn 1.6.1">
   <img src="https://img.shields.io/badge/PyTorch-2.5%20CPU-EE4C2C?logo=pytorch&logoColor=white" alt="PyTorch 2.5">
   <img src="https://img.shields.io/badge/Streamlit-1.67-FF4B4B?logo=streamlit&logoColor=white" alt="Streamlit 1.67">
-  <img src="https://img.shields.io/badge/tests-18%20réussis-2EA44F" alt="18 tests réussis">
+  <img src="https://img.shields.io/badge/tests-21%20réussis-2EA44F" alt="21 tests réussis">
 </p>
 
 <p align="center">
@@ -197,13 +197,15 @@ Python **3.11** est requis : les modèles sont enregistrés avec scikit-learn 1.
 ```bash
 git clone https://github.com/khalifasimboro/Projet-ML-3A.git
 cd Projet-ML-3A
-python -m venv .venv
+uv python install 3.11
+uv venv --python 3.11 .venv
 ```
 
 Activer l'environnement : `.venv\Scripts\activate` sous Windows, `source .venv/bin/activate` sous Linux ou macOS. Puis :
 
 ```bash
-pip install -r requirements.txt
+uv pip install --python .venv/bin/python -r requirements.txt
+uv pip install --python .venv/bin/python -r requirements-dev.txt
 streamlit run app/main.py
 ```
 
@@ -221,11 +223,10 @@ L'application s'ouvre sur http://localhost:8501. Elle n'a besoin que des fichier
 | `python scripts/rapports_profiling.py` | Régénère les rapports YData Profiling (dans un environnement séparé, voir le script) |
 | `python scripts/composer_banniere.py image.webp` | Prépare l'illustration de la bannière |
 
-Pour vérifier le backend (18 tests : lecture, descripteurs, diagnostic des 15 exemples, modèle retenu, vitesse) :
+Pour vérifier le backend (21 tests : lecture, descripteurs, robustesse des signaux, diagnostic des 15 exemples, modèle retenu, vitesse) :
 
 ```bash
-pip install pytest
-pytest
+uv run --python .venv/bin/python pytest
 ```
 
 ## Déploiement
@@ -249,7 +250,7 @@ Chaque push sur `main` met l'application en ligne à jour automatiquement, en un
 | `Rydouane` | Développement de l'application ; fusionnée dans `main` une fois les changements vérifiés |
 | `feature/gt204-gt205-membre-b` | Étude comparative des autoencodeurs (résultats repris dans `donnees/etude_v6/`) |
 
-Avant chaque fusion dans `main` : lancer `pytest` (18 tests) et vérifier l'application en local avec `streamlit run app/main.py`.
+Avant chaque fusion dans `main` : lancer `pytest` (21 tests) et vérifier l'application en local avec `uv run --python .venv/bin/python streamlit run app/main.py`.
 
 ## Structure du dépôt
 
