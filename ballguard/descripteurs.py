@@ -27,14 +27,19 @@ def extraire_depuis_signal(sig):
         rms = np.sqrt(np.mean(x ** 2))
         s = SUFFIXE[canal]
         desc[f"rms_{s}"] = float(rms)
-        desc[f"kurtosis_{s}"] = float(stats.kurtosis(x, fisher=False))
-        desc[f"crete_{s}"] = float(np.max(np.abs(x)) / rms)
-        desc[f"skew_{s}"] = float(stats.skew(x))
+        if rms <= np.finfo(np.float32).eps:
+            desc[f"kurtosis_{s}"] = 0.0
+            desc[f"crete_{s}"] = 0.0
+            desc[f"skew_{s}"] = 0.0
+        else:
+            desc[f"kurtosis_{s}"] = float(stats.kurtosis(x, fisher=False))
+            desc[f"crete_{s}"] = float(np.max(np.abs(x)) / rms)
+            desc[f"skew_{s}"] = float(stats.skew(x))
         desc[f"pkpk_{s}"] = float(x.max() - x.min())
         _, P = signal.welch(x, fs=FS, nperseg=512)          # 257 fréquences de 0 à 12,8 kHz
         for b, bande in enumerate(np.array_split(P[1:], N_BANDES)):
-            desc[f"bande{b + 1}_{s}"] = float(np.log10(bande.sum()))
-        spectre.append(np.log10(P[1:]))                      # la composante continue est exclue
+            desc[f"bande{b + 1}_{s}"] = float(np.log10(max(bande.sum(), np.finfo(np.float64).tiny)))
+        spectre.append(np.log10(np.maximum(P[1:], np.finfo(np.float32).tiny)))  # la composante continue est exclue
     return desc, np.concatenate(spectre).astype(np.float32)
 
 
