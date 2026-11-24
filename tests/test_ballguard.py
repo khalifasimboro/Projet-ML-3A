@@ -6,15 +6,16 @@ import io
 import sys
 import zipfile
 from pathlib import Path
-
 import numpy as np
 import pandas as pd
 import pytest
+import joblib
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from ballguard import config  # noqa: E402
 from ballguard.descripteurs import FEATURES, extraire, extraire_depuis_signal  # noqa: E402
-from ballguard.diagnostic import VitesseInconnue, analyser, charger_modele, diagnostiquer_fichier  # noqa: E402
+from ballguard.diagnostic import (ModeleIncompatible, VitesseInconnue, analyser, charger_modele,
+                                  diagnostiquer_fichier)  # noqa: E402
 from ballguard.inventaire import _classe, _vitesse, numero_acquisition  # noqa: E402
 from ballguard.lecture import SignalInvalide, lire_signal, normaliser  # noqa: E402
 
@@ -63,6 +64,20 @@ def test_descripteurs_d_un_bruit_gaussien():
     assert set(desc) == set(FEATURES) and spectre.shape == (512,)
     assert desc["rms_vb"] == pytest.approx(0.5, rel=0.03)
     assert desc["kurtosis_vb"] == pytest.approx(3.0, abs=0.15)      # bruit gaussien : kurtosis proche de 3
+
+
+def test_signal_constant_reste_fini():
+    desc, spectre = extraire_depuis_signal(np.zeros((config.N_POINTS, 2), dtype=np.float32))
+    assert set(desc) == set(FEATURES)
+    assert np.isfinite(spectre).all()
+    assert np.isfinite(list(desc.values())).all()
+
+
+def test_modele_incomplet_rejete(tmp_path):
+    chemin = tmp_path / "modele.joblib"
+    joblib.dump({"features": FEATURES}, chemin)
+    with pytest.raises(ModeleIncompatible, match="artefacts manquants"):
+        charger_modele(chemin)
 
 
 def test_fichier_non_excel_rejete():
@@ -127,6 +142,13 @@ def test_chaine_complete_sur_un_fichier_brut():
 def test_vitesse_inconnue_refusee():
     with pytest.raises(VitesseInconnue):
         diagnostiquer_fichier(charger_modele(), EXEMPLES[0], 12)
+
+
+@besoin_modele
+@besoin_exemples
+def test_vitesse_non_reconnue_refusee():
+    with pytest.raises(VitesseInconnue, match="non reconnue"):
+        diagnostiquer_fichier(charger_modele(), EXEMPLES[0], None)
 
 
 @besoin_modele
