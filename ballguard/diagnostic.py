@@ -13,8 +13,30 @@ class VitesseInconnue(ValueError):
     """Aucune normalisation n'a été apprise pour cette vitesse."""
 
 
+class ModeleIncompatible(ValueError):
+    """Le fichier de modèle ne contient pas tous les artefacts attendus."""
+
+
+_CLEFS_MODELE = (
+    "features",
+    "detection",
+    "detection_spectre",
+    "baselines",
+    "diagnostic",
+    "reference",
+    "variantes",
+)
+
+
 def charger_modele(chemin=FICHIER_MODELE):
-    return joblib.load(chemin)
+    modele = joblib.load(chemin)
+    manquantes = [cle for cle in _CLEFS_MODELE if cle not in modele]
+    if manquantes:
+        raise ModeleIncompatible(
+            f"modèle incompatible : artefacts manquants ({', '.join(manquantes)}). "
+            "Relancez scripts/entrainer.py."
+        )
+    return modele
 
 
 def _preparer_diagnostic(modele, D, vitesses):
@@ -188,6 +210,8 @@ def diagnostiquer_fichier(modele, source, vitesse, variante="spec"):
 
     Renvoie (resultat, signal, spectre).
     """
+    if vitesse is None:
+        raise VitesseInconnue("vitesse non reconnue : indiquez 10, 15 ou 20 km/h")
     if int(vitesse) not in modele["diagnostic"]["scalers_vitesse"]:
         raise VitesseInconnue(f"vitesse {vitesse} inconnue : le modèle connaît {sorted(modele['diagnostic']['scalers_vitesse'])}")
     sig = lire_signal(source)
