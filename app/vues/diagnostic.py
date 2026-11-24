@@ -133,7 +133,7 @@ def page():
                     f" ({T('confiance', 'confidence')} {min(a[1] for a in reconnues.values()):.0%})" if len(reconnues) == 1 else
                     T(f" ({len(reconnues)} fichiers)", f" ({len(reconnues)} files)")))
             if choix_v == "auto":
-                sources = [(f.name, f.getvalue(), auto[f.name][0] if auto[f.name] else 15) for f in televerses]
+                sources = [(f.name, f.getvalue(), auto[f.name][0] if auto[f.name] else None) for f in televerses]
             else:
                 sources = [(f.name, f.getvalue(), int(choix_v)) for f in televerses]
                 ecarts = [n for n, a in reconnues.items() if a[0] != int(choix_v)]
